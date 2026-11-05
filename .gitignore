@@ -1,0 +1,12 @@
+# Cópias de arquivos de origem nunca vão para o repositório (regra 2 do spec)
+data/raw/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Excel abre um arquivo temporário ao lado da planilha
+~$*
