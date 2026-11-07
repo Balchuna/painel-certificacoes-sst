@@ -1,0 +1,2 @@
+# CSVs com fim de linha LF em qualquer sistema: a mesma limpeza dá os mesmos bytes.
+*.csv text eol=lf

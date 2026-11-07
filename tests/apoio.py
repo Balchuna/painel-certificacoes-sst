@@ -7,6 +7,7 @@ esconde atrás do próprio gerador.
 from __future__ import annotations
 
 import calendar
+import csv
 import os
 import re
 import subprocess
@@ -18,7 +19,11 @@ import openpyxl
 
 RAIZ = Path(__file__).resolve().parents[1]
 SCRIPT = RAIZ / "scripts" / "gerar_dados.py"
+SCRIPT_LIMPEZA = RAIZ / "scripts" / "limpar_dados.py"
+SCRIPT_GABARITO = RAIZ / "scripts" / "gerar_gabarito.py"
 ENTRADA_VERSIONADA = RAIZ / "data" / "entrada"
+LIMPA_VERSIONADA = RAIZ / "data" / "limpa"
+GABARITO_VERSIONADO = RAIZ / "sql" / "gabarito"
 
 CONTROLE = "controle_largo.xlsx"
 PARAMETROS = "parametros.xlsx"
@@ -61,6 +66,28 @@ def gerar_ok(saida, *args, hash_seed="0"):
     resultado = rodar_gerador(saida, *args, hash_seed=hash_seed)
     assert resultado.returncode == 0, resultado.stderr
     return resultado
+
+
+def rodar_script(script, *args):
+    """Roda um script do projeto pela linha de comando."""
+    return subprocess.run(
+        [sys.executable, str(script), *(str(arg) for arg in args)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+
+
+def rodar_ok(script, *args):
+    resultado = rodar_script(script, *args)
+    assert resultado.returncode == 0, resultado.stderr
+    return resultado
+
+
+def ler_csv(caminho):
+    """Devolve o CSV como lista de dicionários, tudo em texto."""
+    with open(caminho, encoding="utf-8", newline="") as arquivo:
+        return list(csv.DictReader(arquivo))
 
 
 def ler_aba(caminho, aba):
