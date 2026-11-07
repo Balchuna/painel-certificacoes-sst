@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "cartao_8",
+  "position": {
+    "x": 986,
+    "y": 80,
+    "z": 10,
+    "height": 100,
+    "width": 130,
+    "tabOrder": 10
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Medidas"
+                    }
+                  },
+                  "Property": "Vencem em 60 dias"
+                }
+              },
+              "queryRef": "Medidas.Vencem em 60 dias",
+              "nativeQueryRef": "Vencem em 60 dias"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

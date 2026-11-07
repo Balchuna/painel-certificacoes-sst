@@ -1,0 +1,22 @@
+/// As equipes que aparecem no cadastro, uma por linha. Serve de filtro nas páginas do painel.
+table dim_equipe
+	lineageTag: cad0a54b-ad6a-5053-b3fc-0dc533a802b9
+
+	column equipe
+		dataType: string
+		lineageTag: 1c0545be-f933-5dda-9af7-123c7ca2ec06
+		summarizeBy: none
+		sourceColumn: equipe
+
+		annotation SummarizationSetBy = User
+
+	partition dim_equipe = m
+		mode: import
+		source =
+				let
+				    Equipes = Table.Distinct(Table.SelectColumns(dim_funcionario, {"equipe"})),
+				    Ordenada = Table.Sort(Equipes, {"equipe"})
+				in
+				    Ordenada
+
+	annotation PBI_ResultType = Table

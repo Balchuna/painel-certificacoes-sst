@@ -1,0 +1,109 @@
+/// O que a limpeza deixou de fora e por quê. É a página "Qualidade dos dados" do painel.
+///   Matrícula duplicada  a linha repetida do Controle sai inteira (fica a primeira).
+///   Data inválida        no Controle, só a célula sai; no Historico, a linha inteira.
+///   Data vazia           linha do Historico sem data de emissão.
+/// "linha" é o número da linha no Excel, para achar o problema na planilha.
+/// A ordem é a da limpeza em Python: aba Controle linha a linha (e, na linha, coluna a coluna),
+/// depois a aba Historico.
+table qualidade_rejeicoes
+	lineageTag: 6ea381ea-4d38-5697-ae97-717a305d9a9a
+
+	column aba
+		dataType: string
+		lineageTag: 3fb2957f-a555-51e4-83eb-188d652791e0
+		summarizeBy: none
+		sourceColumn: aba
+
+		annotation SummarizationSetBy = User
+
+	column linha
+		dataType: int64
+		formatString: 0
+		lineageTag: 71e2dffc-0fb5-5592-b12c-64c7b17068f2
+		summarizeBy: none
+		sourceColumn: linha
+
+		annotation SummarizationSetBy = User
+
+	column matricula
+		dataType: int64
+		formatString: 0
+		lineageTag: 960231f9-6166-59df-a790-e45f63f93e8c
+		summarizeBy: none
+		sourceColumn: matricula
+
+		annotation SummarizationSetBy = User
+
+	column coluna
+		dataType: string
+		lineageTag: 09fccc3d-393a-5cd8-b822-83dfc4347cf7
+		summarizeBy: none
+		sourceColumn: coluna
+
+		annotation SummarizationSetBy = User
+
+	column valor_original
+		dataType: string
+		lineageTag: 56ae9c74-dc9a-52d5-b3cd-724dd88df316
+		summarizeBy: none
+		sourceColumn: valor_original
+
+		annotation SummarizationSetBy = User
+
+	column motivo
+		dataType: string
+		lineageTag: 6111cbd7-0ee6-5399-b09f-e9aa9434c6e8
+		summarizeBy: none
+		sourceColumn: motivo
+
+		annotation SummarizationSetBy = User
+
+	column acao
+		dataType: string
+		lineageTag: 52054047-2e15-57c2-943a-da61cd12c347
+		summarizeBy: none
+		sourceColumn: acao
+
+		annotation SummarizationSetBy = User
+
+	partition qualidade_rejeicoes = m
+		mode: import
+		source =
+				let
+				    Duplicadas = List.Transform(
+				        Table.ToRecords(Table.SelectRows(stg_Controle, each [duplicada])),
+				        (r) => [
+				            aba = "Controle", linha = r[linha], ordem = 0, matricula = r[matricula], coluna = "Matrícula",
+				            valor_original = Text.From(r[matricula]), motivo = "Matrícula duplicada", acao = "Linha descartada"
+				        ]
+				    ),
+				    DatasInvalidas = List.Transform(
+				        Table.ToRecords(Table.SelectRows(stg_DatasControle, each [invalida])),
+				        (r) => [
+				            aba = "Controle", linha = r[linha], ordem = r[posicao] + 1, matricula = r[matricula], coluna = r[coluna],
+				            valor_original = Text.From(r[valor], "en-US"), motivo = "Data inválida", acao = "Célula descartada"
+				        ]
+				    ),
+				    DoHistorico = List.Transform(
+				        Table.ToRecords(Table.SelectRows(stg_Historico, each [motivo] <> null)),
+				        (r) => [
+				            aba = "Historico", linha = r[linha], ordem = 0, matricula = r[matricula], coluna = "Data de emissão",
+				            valor_original = if r[motivo] = "Data vazia" then "" else Text.From(r[#"Data de emissão"], "en-US"),
+				            motivo = r[motivo], acao = "Linha descartada"
+				        ]
+				    ),
+				    Colunas = {"aba", "linha", "ordem", "matricula", "coluna", "valor_original", "motivo", "acao"},
+				    Tabela = Table.FromRecords(Duplicadas & DatasInvalidas & DoHistorico, Colunas),
+				    Ordenada = Table.Sort(Tabela, {"aba", "linha", "ordem"}),
+				    SemOrdem = Table.RemoveColumns(Ordenada, {"ordem"}),
+				    Tipada = Table.TransformColumnTypes(
+				        SemOrdem,
+				        {
+				            {"aba", type text}, {"linha", Int64.Type}, {"matricula", Int64.Type}, {"coluna", type text},
+				            {"valor_original", type text}, {"motivo", type text}, {"acao", type text}
+				        }
+				    )
+				in
+				    Tipada
+
+	annotation PBI_ResultType = Table

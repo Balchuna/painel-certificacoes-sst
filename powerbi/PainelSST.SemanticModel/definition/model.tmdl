@@ -1,0 +1,24 @@
+model Model
+	culture: pt-BR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: pt-BR
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation PBI_QueryOrder = ["PastaEntrada", "fn_LimparTexto", "fn_LerData", "fn_LerMatricula", "Arquivos", "fn_LerAba", "dim_treinamento", "dim_funcao", "regra_funcao_treinamento", "parametro", "stg_Controle", "stg_DatasControle", "stg_Historico", "dim_funcionario", "dim_equipe", "fato_certificacao", "qualidade_rejeicoes", "dim_calendario", "Medidas"]
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table dim_treinamento
+ref table dim_funcao
+ref table regra_funcao_treinamento
+ref table parametro
+ref table dim_funcionario
+ref table dim_equipe
+ref table fato_certificacao
+ref table qualidade_rejeicoes
+ref table dim_calendario
+ref table Medidas

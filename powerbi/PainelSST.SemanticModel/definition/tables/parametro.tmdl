@@ -1,0 +1,70 @@
+/// A data de referência e as três janelas de alerta (em dias), da aba Alertas de parametros.xlsx.
+/// É uma tabela de uma linha só. As medidas leem daqui: mudar a data ou as janelas na planilha e
+/// atualizar o painel muda todos os números, sem mexer em nenhuma fórmula.
+table parametro
+	lineageTag: c16fc2c9-e45b-5ee0-8037-6f7488adcd65
+
+	column data_referencia
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: 1bf2645c-e3da-5d8b-bc5f-37d174fa4155
+		summarizeBy: none
+		sourceColumn: data_referencia
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation SummarizationSetBy = User
+
+	column janela_1
+		dataType: int64
+		formatString: 0
+		lineageTag: aae1cbc5-7759-5727-8f56-05b1fb61162a
+		summarizeBy: none
+		sourceColumn: janela_1
+
+		annotation SummarizationSetBy = User
+
+	column janela_2
+		dataType: int64
+		formatString: 0
+		lineageTag: 1702aa78-6a56-54d7-9caa-a275200a9864
+		summarizeBy: none
+		sourceColumn: janela_2
+
+		annotation SummarizationSetBy = User
+
+	column janela_3
+		dataType: int64
+		formatString: 0
+		lineageTag: a3047aab-8a8f-5431-9d43-1069a2cc8a9e
+		summarizeBy: none
+		sourceColumn: janela_3
+
+		annotation SummarizationSetBy = User
+
+	partition parametro = m
+		mode: import
+		source =
+				let
+				    Aba = fn_LerAba("parametros.xlsx", "Alertas"),
+				    Valores = Record.FromList(Aba[Valor], List.Transform(Aba[#"Parâmetro"], fn_LimparTexto)),
+				    Pegar = (rotulo as text) =>
+				        if Record.HasFields(Valores, rotulo) then
+				            Record.Field(Valores, rotulo)
+				        else
+				            error Error.Record("Parâmetro não encontrado", "A aba Alertas não tem """ & rotulo & """"),
+				    Linha = {
+				        fn_LerData(Pegar("Data de referência")),
+				        Int64.From(Number.From(Pegar("Janela de alerta 1 (dias)"))),
+				        Int64.From(Number.From(Pegar("Janela de alerta 2 (dias)"))),
+				        Int64.From(Number.From(Pegar("Janela de alerta 3 (dias)")))
+				    },
+				    Tabela = #table({"data_referencia", "janela_1", "janela_2", "janela_3"}, {Linha}),
+				    Tipada = Table.TransformColumnTypes(
+				        Tabela,
+				        {{"data_referencia", type date}, {"janela_1", Int64.Type}, {"janela_2", Int64.Type}, {"janela_3", Int64.Type}}
+				    )
+				in
+				    Tipada
+
+	annotation PBI_ResultType = Table

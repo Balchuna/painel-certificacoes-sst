@@ -1,0 +1,208 @@
+/// A pasta data\entrada deste projeto, onde estão controle_largo.xlsx e parametros.xlsx.
+/// Troque o texto entre aspas pelo caminho da pasta no seu computador.
+expression PastaEntrada = "C:\caminho\do\projeto\data\entrada" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = true]
+	lineageTag: d6b4d025-4b87-5bc6-94df-824cfa913342
+
+	annotation PBI_ResultType = Text
+
+/// Tira os espaços das pontas e junta espaços repetidos no meio: "  Equipe   Alfa " vira "Equipe Alfa".
+/// Faz o mesmo que " ".join(texto.split()) na limpeza em Python, inclusive com tabulação,
+/// quebra de linha e espaço não separável. Célula vazia vira texto vazio.
+expression fn_LimparTexto =
+		(valor as any) as text =>
+		let
+		    Texto = if valor = null then "" else Text.From(valor, "en-US"),
+		    // Os caracteres que o Python considera espaço em branco.
+		    Espacos = Text.Combine(
+		        List.Transform(
+		            {9, 10, 11, 12, 13, 28, 29, 30, 31, 32, 133, 160, 5760}
+		                & {8192..8202} & {8232, 8233, 8239, 8287, 12288},
+		            Character.FromNumber
+		        )
+		    ),
+		    Pedacos = Text.SplitAny(Texto, Espacos),
+		    Limpo = Text.Combine(List.Select(Pedacos, each _ <> ""), " ")
+		in
+		    Limpo
+	lineageTag: 55fced4a-1e0b-52aa-9d66-198be980c495
+
+	annotation PBI_ResultType = Function
+
+/// Lê uma célula de data. Aceita data do Excel ou texto no formato dd/mm/aaaa, com ou sem espaços
+/// sobrando. Célula vazia (ou só com espaços) vira null.
+/// A data do Excel pode chegar de dois jeitos: como data ou como o número de série que o Excel
+/// guarda por baixo (46327 = 1º/11/2026). O leitor do Power Query entrega número quando não
+/// reconhece o formato da célula como data, o que acontece com as planilhas geradas pelo projeto;
+/// por isso número também é lido como data. Ver docs/DECISOES.md.
+/// Qualquer outra coisa, inclusive uma data que não existe como 31/02/2025, dá o erro "Data inválida".
+/// Quem chama usa try para saber se a célula era inválida e registrar a rejeição.
+expression fn_LerData =
+		(valor as any) as nullable date =>
+		let
+		    Invalida = () => error Error.Record("Data inválida", "Não é data do Excel nem dd/mm/aaaa", valor),
+		    Lida =
+		        if valor = null then
+		            null
+		        else if valor is datetime then
+		            DateTime.Date(valor)
+		        else if valor is date then
+		            valor
+		        else if valor is number then
+		            try DateTime.Date(DateTime.From(valor)) otherwise Invalida()
+		        else
+		            let
+		                Texto = fn_LimparTexto(valor),
+		                Partes = Text.Split(Texto, "/"),
+		                NoFormato =
+		                    List.Count(Partes) = 3
+		                        and List.Transform(Partes, Text.Length) = {2, 2, 4}
+		                        and Text.Remove(Text.Combine(Partes), {"0".."9"}) = "",
+		                Data =
+		                    if not NoFormato then
+		                        null
+		                    else
+		                        try #date(Number.From(Partes{2}), Number.From(Partes{1}), Number.From(Partes{0}))
+		                            otherwise null
+		            in
+		                if Texto = "" then null else if Data = null then Invalida() else Data
+		in
+		    Lida
+	lineageTag: 9da1cfa4-2d4d-536d-97e3-8edd9632b850
+
+	annotation PBI_ResultType = Function
+
+/// Lê a matrícula: depois de tirar os espaços, só pode ter dígitos.
+/// Se não for um número, a atualização para com um erro que diz a aba e a linha, como a limpeza em Python.
+expression fn_LerMatricula =
+		(valor as any, onde as text) as number =>
+		let
+		    Texto = fn_LimparTexto(valor),
+		    Valida = Texto <> "" and Text.Remove(Texto, {"0".."9"}) = ""
+		in
+		    if Valida then
+		        Number.From(Texto)
+		    else
+		        error Error.Record("Matrícula inválida", onde & ": a matrícula """ & Texto & """ não é um número", valor)
+	lineageTag: a41e7562-7559-56d5-93b1-3fcb5608a945
+
+	annotation PBI_ResultType = Function
+
+/// A única fonte de dados do painel: os arquivos da pasta de entrada.
+/// As duas planilhas são lidas daqui. Com uma fonte só, o Power BI não pede níveis de privacidade
+/// para juntar dados das duas, e trocar de pasta é só mudar o parâmetro PastaEntrada.
+expression Arquivos =
+		let
+		    Fonte = Folder.Contents(PastaEntrada),
+		    Planilhas = Table.SelectRows(Fonte, each List.Contains({"controle_largo.xlsx", "parametros.xlsx"}, [Name])),
+		    Arquivos = Table.SelectColumns(Planilhas, {"Name", "Content"})
+		in
+		    Arquivos
+	lineageTag: 6ef7f8c3-c545-569a-aa77-2cf1ac81122a
+
+	annotation PBI_ResultType = Table
+
+/// Lê uma aba de uma das planilhas da pasta de entrada e devolve:
+///   - o cabeçalho limpo (sem espaços sobrando), como nome das colunas;
+///   - a coluna "linha", com o número da linha no Excel, para a tabela de qualidade dizer onde está o problema;
+///   - só as linhas que têm pelo menos uma célula preenchida.
+/// As células chegam como estão na planilha: data do Excel, número ou texto. Quem chama converte.
+expression fn_LerAba =
+		(arquivo as text, aba as text) as table =>
+		let
+		    Conteudo =
+		        try Arquivos{[Name = arquivo]}[Content]
+		            otherwise error Error.Record("Arquivo não encontrado", "Não achei " & arquivo & " na pasta " & PastaEntrada),
+		    Pasta = Excel.Workbook(Conteudo, null, true),
+		    Dados =
+		        try Pasta{[Item = aba, Kind = "Sheet"]}[Data]
+		            otherwise error Error.Record("Aba não encontrada", arquivo & " não tem a aba " & aba),
+		    Colunas = Table.ColumnNames(Dados),
+		    // A primeira linha da aba é o cabeçalho. Coluna sem título fica com o nome que o Power Query deu.
+		    Titulos = List.Transform(Record.FieldValues(Dados{0}), fn_LimparTexto),
+		    NovosNomes = List.Transform(List.Positions(Colunas), each if Titulos{_} = "" then Colunas{_} else Titulos{_}),
+		    // A linha 1 do Excel é o cabeçalho; a primeira linha de dados é a 2.
+		    Corpo = Table.AddIndexColumn(Table.Skip(Dados, 1), "linha", 2, 1, Int64.Type),
+		    Preenchidas = Table.SelectRows(Corpo, each List.NonNullCount(Record.FieldValues(Record.SelectFields(_, Colunas))) > 0),
+		    Renomeada = Table.RenameColumns(Preenchidas, List.Zip({Colunas, NovosNomes}))
+		in
+		    Renomeada
+	lineageTag: 029624a1-7eec-5a9d-b251-a7772d64a3d2
+
+	annotation PBI_ResultType = Function
+
+/// A aba Controle, uma linha por linha do Excel, com a matrícula já convertida em número.
+/// A coluna "duplicada" marca a segunda (ou terceira...) linha de uma matrícula repetida:
+/// fica a primeira ocorrência e a repetida sai inteira, inclusive as datas, como na limpeza em Python.
+/// Se alguma matrícula não for número, a atualização para e diz a linha.
+expression stg_Controle =
+		let
+		    Aba = fn_LerAba("controle_largo.xlsx", "Controle"),
+		    ComMatricula = Table.AddColumn(
+		        Aba, "matricula", each fn_LerMatricula([#"Matrícula"], "Controle, linha " & Text.From([linha])), Int64.Type
+		    ),
+		    ComErro = Table.SelectRowsWithErrors(ComMatricula, {"matricula"}),
+		    Conferida = if Table.IsEmpty(ComErro) then ComMatricula else error (try ComErro{0}[matricula])[Error],
+		    // A linha onde cada matrícula aparece pela primeira vez.
+		    Primeiras = List.Buffer(
+		        Table.Group(Conferida, {"matricula"}, {{"primeira", each List.Min([linha]), Int64.Type}})[primeira]
+		    ),
+		    ComDuplicada = Table.AddColumn(Conferida, "duplicada", each not List.Contains(Primeiras, [linha]), type logical)
+		in
+		    ComDuplicada
+	lineageTag: 4d7525de-b9ab-579e-9b99-ef0f34bbd812
+
+	annotation PBI_ResultType = Table
+
+/// Despivota as colunas de data da aba Controle: de uma coluna por treinamento (formato largo)
+/// para uma linha por célula preenchida (formato longo). Entram a admissão, o desligamento e
+/// os doze treinamentos, só das linhas que não são matrícula repetida.
+/// Cada célula é lida com fn_LerData. A que não é data válida fica com "invalida" = verdadeiro e
+/// data vazia: vira uma rejeição em qualidade_rejeicoes e não vira emissão.
+expression stg_DatasControle =
+		let
+		    Colunas = {"Admissão", "Desligamento"} & dim_treinamento[codigo],
+		    Unicas = Table.SelectRows(stg_Controle, each not [duplicada]),
+		    SoDatas = Table.SelectColumns(Unicas, {"linha", "matricula"} & Colunas),
+		    // O despivotar deixa de fora as células vazias, que não são emissão nem erro.
+		    Longa = Table.UnpivotOtherColumns(SoDatas, {"linha", "matricula"}, "coluna", "valor"),
+		    Lida = Table.AddColumn(Longa, "leitura", each try fn_LerData([valor])),
+		    ComData = Table.AddColumn(
+		        Lida, "data", each if [leitura][HasError] then null else [leitura][Value], type nullable date
+		    ),
+		    ComInvalida = Table.AddColumn(ComData, "invalida", each [leitura][HasError], type logical),
+		    // A posição da coluna na planilha, para a tabela de qualidade sair na ordem da limpeza em Python.
+		    ComPosicao = Table.AddColumn(ComInvalida, "posicao", each List.PositionOf(Colunas, [coluna]), Int64.Type),
+		    Final = Table.RemoveColumns(ComPosicao, {"leitura"})
+		in
+		    Final
+	lineageTag: 74025c52-3f57-57dc-a6ee-8da9730f225a
+
+	annotation PBI_ResultType = Table
+
+/// A aba Historico: uma emissão anterior por linha. A coluna "motivo" diz por que uma linha não
+/// vira emissão: "Data inválida" ou "Data vazia". Linha com motivo vazio é emissão boa.
+expression stg_Historico =
+		let
+		    Aba = fn_LerAba("controle_largo.xlsx", "Historico"),
+		    ComMatricula = Table.AddColumn(
+		        Aba, "matricula", each fn_LerMatricula([#"Matrícula"], "Historico, linha " & Text.From([linha])), Int64.Type
+		    ),
+		    ComErro = Table.SelectRowsWithErrors(ComMatricula, {"matricula"}),
+		    Conferida = if Table.IsEmpty(ComErro) then ComMatricula else error (try ComErro{0}[matricula])[Error],
+		    ComTreinamento = Table.AddColumn(Conferida, "treinamento", each fn_LimparTexto([Treinamento]), type text),
+		    Lida = Table.AddColumn(ComTreinamento, "leitura", each try fn_LerData([#"Data de emissão"])),
+		    ComData = Table.AddColumn(
+		        Lida, "data", each if [leitura][HasError] then null else [leitura][Value], type nullable date
+		    ),
+		    ComMotivo = Table.AddColumn(
+		        ComData,
+		        "motivo",
+		        each if [leitura][HasError] then "Data inválida" else if [data] = null then "Data vazia" else null,
+		        type nullable text
+		    ),
+		    Final = Table.RemoveColumns(ComMotivo, {"leitura"})
+		in
+		    Final
+	lineageTag: ecc6a57f-eed2-52ae-bd23-16d0b14f33ae
+
+	annotation PBI_ResultType = Table

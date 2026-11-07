@@ -1,0 +1,23 @@
+/// As funções que têm regra na aba Regra_Funcao_Treinamento de parametros.xlsx.
+table dim_funcao
+	lineageTag: eacdab60-273f-51ff-a45a-ea4034a78098
+
+	column funcao
+		dataType: string
+		lineageTag: a8ff01ba-ec4d-5d20-80a1-9741cdac5ad4
+		summarizeBy: none
+		sourceColumn: funcao
+
+		annotation SummarizationSetBy = User
+
+	partition dim_funcao = m
+		mode: import
+		source =
+				let
+				    Aba = fn_LerAba("parametros.xlsx", "Regra_Funcao_Treinamento"),
+				    ComFuncao = Table.AddColumn(Aba, "funcao", each fn_LimparTexto([#"Função"]), type text),
+				    Final = Table.SelectColumns(ComFuncao, {"funcao"})
+				in
+				    Final
+
+	annotation PBI_ResultType = Table

@@ -1,0 +1,166 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "rejeicoes",
+  "position": {
+    "x": 20,
+    "y": 195,
+    "z": 3,
+    "height": 250,
+    "width": 1240,
+    "tabOrder": 3
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "qualidade_rejeicoes"
+                    }
+                  },
+                  "Property": "aba"
+                }
+              },
+              "queryRef": "qualidade_rejeicoes.aba",
+              "nativeQueryRef": "aba",
+              "displayName": "Aba"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "qualidade_rejeicoes"
+                    }
+                  },
+                  "Property": "linha"
+                }
+              },
+              "queryRef": "qualidade_rejeicoes.linha",
+              "nativeQueryRef": "linha",
+              "displayName": "Linha"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "qualidade_rejeicoes"
+                    }
+                  },
+                  "Property": "matricula"
+                }
+              },
+              "queryRef": "qualidade_rejeicoes.matricula",
+              "nativeQueryRef": "matricula",
+              "displayName": "Matrícula"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "qualidade_rejeicoes"
+                    }
+                  },
+                  "Property": "coluna"
+                }
+              },
+              "queryRef": "qualidade_rejeicoes.coluna",
+              "nativeQueryRef": "coluna",
+              "displayName": "Coluna"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "qualidade_rejeicoes"
+                    }
+                  },
+                  "Property": "valor_original"
+                }
+              },
+              "queryRef": "qualidade_rejeicoes.valor_original",
+              "nativeQueryRef": "valor_original",
+              "displayName": "Valor original"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "qualidade_rejeicoes"
+                    }
+                  },
+                  "Property": "motivo"
+                }
+              },
+              "queryRef": "qualidade_rejeicoes.motivo",
+              "nativeQueryRef": "motivo",
+              "displayName": "Motivo"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "qualidade_rejeicoes"
+                    }
+                  },
+                  "Property": "acao"
+                }
+              },
+              "queryRef": "qualidade_rejeicoes.acao",
+              "nativeQueryRef": "acao",
+              "displayName": "Ação"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Linhas rejeitadas na limpeza'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

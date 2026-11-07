@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "cartao_3",
+  "position": {
+    "x": 296,
+    "y": 80,
+    "z": 5,
+    "height": 100,
+    "width": 130,
+    "tabOrder": 5
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Medidas"
+                    }
+                  },
+                  "Property": "Funcionários Irregulares"
+                }
+              },
+              "queryRef": "Medidas.Funcionários Irregulares",
+              "nativeQueryRef": "Funcionários Irregulares"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

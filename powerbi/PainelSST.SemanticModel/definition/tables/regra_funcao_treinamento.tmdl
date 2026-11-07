@@ -1,0 +1,64 @@
+/// A regra de cada função para cada treinamento: SIM (obrigatório), NÃO (não se aplica) ou
+/// CONDICIONAL (depende da atividade). A aba vem larga, uma coluna por treinamento; aqui ela é
+/// despivotada para uma linha por par função e treinamento.
+/// Maiúsculas e espaços não importam ("  sim " vale SIM). Qualquer outro valor, inclusive célula
+/// vazia, para a atualização com um erro que diz a linha e o treinamento.
+table regra_funcao_treinamento
+	lineageTag: 1fc12f39-ba8c-5b3c-aa84-d172dc00a793
+
+	column funcao
+		dataType: string
+		lineageTag: 08cf5e3d-a6d6-538f-bddc-f641a409e368
+		summarizeBy: none
+		sourceColumn: funcao
+
+		annotation SummarizationSetBy = User
+
+	column treinamento
+		dataType: string
+		lineageTag: c1a25591-258f-5982-9094-e0b3dd7159bf
+		summarizeBy: none
+		sourceColumn: treinamento
+
+		annotation SummarizationSetBy = User
+
+	column regra
+		dataType: string
+		lineageTag: 6f993889-d6c3-5508-8abf-ed50e6516e86
+		summarizeBy: none
+		sourceColumn: regra
+
+		annotation SummarizationSetBy = User
+
+	partition regra_funcao_treinamento = m
+		mode: import
+		source =
+				let
+				    Aba = fn_LerAba("parametros.xlsx", "Regra_Funcao_Treinamento"),
+				    Codigos = dim_treinamento[codigo],
+				    ComFuncao = Table.AddColumn(Aba, "funcao", each fn_LimparTexto([#"Função"]), type text),
+				    SoRegras = Table.SelectColumns(ComFuncao, {"linha", "funcao"} & Codigos),
+				    // Célula vazia vira texto vazio antes de despivotar, para não sumir e cair na conferência abaixo.
+				    Limpas = Table.TransformColumns(
+				        SoRegras, List.Transform(Codigos, (codigo) => {codigo, each Text.Upper(fn_LimparTexto(_)), type text})
+				    ),
+				    Longa = Table.UnpivotOtherColumns(Limpas, {"linha", "funcao"}, "treinamento", "regra"),
+				    Invalidas = Table.SelectRows(Longa, each not List.Contains({"SIM", "NÃO", "CONDICIONAL"}, [regra])),
+				    Conferida =
+				        if Table.IsEmpty(Invalidas) then
+				            Longa
+				        else
+				            error Error.Record(
+				                "Regra inválida",
+				                "Regra_Funcao_Treinamento, linha " & Text.From(Invalidas{0}[linha]) & ", "
+				                    & Invalidas{0}[treinamento] & ": """ & Invalidas{0}[regra]
+				                    & """ não é SIM, NÃO nem CONDICIONAL"
+				            ),
+				    Final = Table.TransformColumnTypes(
+				        Table.SelectColumns(Conferida, {"funcao", "treinamento", "regra"}),
+				        {{"treinamento", type text}, {"regra", type text}}
+				    )
+				in
+				    Final
+
+	annotation PBI_ResultType = Table

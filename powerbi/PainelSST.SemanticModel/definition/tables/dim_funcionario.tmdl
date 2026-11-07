@@ -1,0 +1,103 @@
+/// Uma linha por matrícula, da aba Controle: a primeira ocorrência de cada matrícula.
+/// Os textos saem sem espaços sobrando. Admissão ou desligamento com data inválida fica vazio
+/// (e aparece em qualidade_rejeicoes).
+/// "funcionario" junta matrícula e nome ("7001 - Fulano"): é o rótulo das linhas da matriz farol,
+/// que assim não junta dois homônimos numa linha só.
+table dim_funcionario
+	lineageTag: 2e9d2de3-5732-50a5-957e-c417c280154b
+
+	column matricula
+		dataType: int64
+		formatString: 0
+		lineageTag: 6a4fdd10-6f01-5ae0-a401-f1a5496d17f0
+		summarizeBy: none
+		sourceColumn: matricula
+
+		annotation SummarizationSetBy = User
+
+	column nome
+		dataType: string
+		lineageTag: c069f430-1560-5e8c-b574-186c94210afc
+		summarizeBy: none
+		sourceColumn: nome
+
+		annotation SummarizationSetBy = User
+
+	column funcao
+		dataType: string
+		lineageTag: 21887935-b481-5229-9f20-f4f46109426c
+		summarizeBy: none
+		sourceColumn: funcao
+
+		annotation SummarizationSetBy = User
+
+	column equipe
+		dataType: string
+		lineageTag: 8934d43c-3d36-5eb5-93b4-6581e80d28c1
+		summarizeBy: none
+		sourceColumn: equipe
+
+		annotation SummarizationSetBy = User
+
+	column admissao
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: 15d92cfc-a5c2-5c10-b7ab-54442cc5d15f
+		summarizeBy: none
+		sourceColumn: admissao
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation SummarizationSetBy = User
+
+	column situacao
+		dataType: string
+		lineageTag: faa08314-e11d-5651-baa7-8d40f08c9568
+		summarizeBy: none
+		sourceColumn: situacao
+
+		annotation SummarizationSetBy = User
+
+	column desligamento
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: a3b108e2-7c2d-5a3c-9b32-fa54d00b79f4
+		summarizeBy: none
+		sourceColumn: desligamento
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation SummarizationSetBy = User
+
+	column funcionario
+		dataType: string
+		lineageTag: 6274d570-0847-5104-93b5-d040b9487c9e
+		summarizeBy: none
+		sourceColumn: funcionario
+
+		annotation SummarizationSetBy = User
+
+	partition dim_funcionario = m
+		mode: import
+		source =
+				let
+				    Unicas = Table.SelectRows(stg_Controle, each not [duplicada]),
+				    LerData = (valor) => try fn_LerData(valor) otherwise null,
+				    ComNome = Table.AddColumn(Unicas, "nome", each fn_LimparTexto([Nome]), type text),
+				    ComFuncao = Table.AddColumn(ComNome, "funcao", each fn_LimparTexto([#"Função"]), type text),
+				    ComEquipe = Table.AddColumn(ComFuncao, "equipe", each fn_LimparTexto([Equipe]), type text),
+				    ComAdmissao = Table.AddColumn(ComEquipe, "admissao", each LerData([#"Admissão"]), type nullable date),
+				    ComSituacao = Table.AddColumn(ComAdmissao, "situacao", each fn_LimparTexto([#"Situação"]), type text),
+				    ComDesligamento = Table.AddColumn(ComSituacao, "desligamento", each LerData([Desligamento]), type nullable date),
+				    ComRotulo = Table.AddColumn(
+				        ComDesligamento, "funcionario", each Text.From([matricula]) & " - " & [nome], type text
+				    ),
+				    Colunas = Table.SelectColumns(
+				        ComRotulo,
+				        {"matricula", "nome", "funcao", "equipe", "admissao", "situacao", "desligamento", "funcionario"}
+				    ),
+				    Ordenada = Table.Sort(Colunas, {"matricula"})
+				in
+				    Ordenada
+
+	annotation PBI_ResultType = Table

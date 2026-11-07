@@ -1,0 +1,59 @@
+/// Os treinamentos e a validade de cada um, da aba Treinamentos de parametros.xlsx.
+/// validade_meses = 0 quer dizer que o treinamento não vence (como a carteira).
+/// "ordem" é a posição na planilha: serve para a matriz farol mostrar as colunas na ordem de costume
+/// em vez da ordem alfabética (em "Classificar por coluna", no Power BI).
+table dim_treinamento
+	lineageTag: cf7311b8-0ea6-5f40-b871-9078f3bf907a
+
+	column codigo
+		dataType: string
+		lineageTag: 62557014-5897-56f5-9130-89e76942793e
+		summarizeBy: none
+		sourceColumn: codigo
+		sortByColumn: ordem
+
+		annotation SummarizationSetBy = User
+
+	column nome
+		dataType: string
+		lineageTag: 8af5905b-b740-573d-ba80-b64b4014c280
+		summarizeBy: none
+		sourceColumn: nome
+
+		annotation SummarizationSetBy = User
+
+	column validade_meses
+		dataType: int64
+		formatString: 0
+		lineageTag: 4cada92d-dd4d-5caa-894a-e66cc9ce0edc
+		summarizeBy: none
+		sourceColumn: validade_meses
+
+		annotation SummarizationSetBy = User
+
+	column ordem
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 46e951ae-3adb-50ae-a18a-5eb59d5ff84b
+		summarizeBy: none
+		sourceColumn: ordem
+
+		annotation SummarizationSetBy = User
+
+	partition dim_treinamento = m
+		mode: import
+		source =
+				let
+				    Aba = fn_LerAba("parametros.xlsx", "Treinamentos"),
+				    ComCodigo = Table.AddColumn(Aba, "codigo", each fn_LimparTexto([#"Código"]), type text),
+				    ComNome = Table.AddColumn(ComCodigo, "nome", each fn_LimparTexto([Treinamento]), type text),
+				    ComValidade = Table.AddColumn(
+				        ComNome, "validade_meses", each Int64.From(Number.From([#"Validade (meses)"])), Int64.Type
+				    ),
+				    Colunas = Table.SelectColumns(ComValidade, {"codigo", "nome", "validade_meses"}),
+				    ComOrdem = Table.AddIndexColumn(Colunas, "ordem", 1, 1, Int64.Type)
+				in
+				    ComOrdem
+
+	annotation PBI_ResultType = Table

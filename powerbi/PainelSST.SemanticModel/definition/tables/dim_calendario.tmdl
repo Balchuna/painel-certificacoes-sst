@@ -1,0 +1,94 @@
+/// Um dia por linha, de 1º de janeiro do primeiro ano com alguma emissão ou vencimento até
+/// 31 de dezembro do último. Liga em fato_certificacao[data_vencimento]: é o eixo do gráfico
+/// "vencimentos por mês". Marque como tabela de datas no Power BI (coluna "data").
+///   mes_ano              rótulo curto, "nov/2026"; classifique por ano_mes para sair em ordem de data.
+///   ano_mes              202611: número que ordena os meses.
+///   meses_da_referencia  0 no mês da data de referência, 1 no seguinte, -1 no anterior. Filtrar
+///                        de 0 a 11 mostra os próximos doze meses sem mexer no filtro quando a data muda.
+table dim_calendario
+	dataCategory: Time
+	lineageTag: 24717b34-b864-5ff9-9ef3-874713964d83
+
+	column data
+		dataType: dateTime
+		isKey
+		formatString: dd/MM/yyyy
+		lineageTag: ce0f7a94-fe1f-50d3-8a7a-40b8640fa131
+		summarizeBy: none
+		sourceColumn: data
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation SummarizationSetBy = User
+
+	column ano
+		dataType: int64
+		formatString: 0
+		lineageTag: 2c37e3ae-537b-5310-9ece-0a4722061fc7
+		summarizeBy: none
+		sourceColumn: ano
+
+		annotation SummarizationSetBy = User
+
+	column mes
+		dataType: int64
+		formatString: 0
+		lineageTag: f7ca241b-2918-567d-b6b6-eb0dc637c6ed
+		summarizeBy: none
+		sourceColumn: mes
+
+		annotation SummarizationSetBy = User
+
+	column mes_ano
+		dataType: string
+		lineageTag: 7dafe1d4-3b39-5356-a66e-1b2d212ff089
+		summarizeBy: none
+		sourceColumn: mes_ano
+		sortByColumn: ano_mes
+
+		annotation SummarizationSetBy = User
+
+	column ano_mes
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: ebaacfb2-4fce-5d8a-8f12-8bf32256cc2f
+		summarizeBy: none
+		sourceColumn: ano_mes
+
+		annotation SummarizationSetBy = User
+
+	column meses_da_referencia
+		dataType: int64
+		formatString: 0
+		lineageTag: 3da31591-e18e-5efe-8f46-a3a8b176076c
+		summarizeBy: none
+		sourceColumn: meses_da_referencia
+
+		annotation SummarizationSetBy = User
+
+	partition dim_calendario = m
+		mode: import
+		source =
+				let
+				    Referencia = parametro{0}[data_referencia],
+				    Datas = List.RemoveNulls(fato_certificacao[data_emissao] & fato_certificacao[data_vencimento] & {Referencia}),
+				    Inicio = #date(Date.Year(List.Min(Datas)), 1, 1),
+				    Fim = #date(Date.Year(List.Max(Datas)), 12, 31),
+				    Dias = List.Dates(Inicio, Duration.Days(Fim - Inicio) + 1, #duration(1, 0, 0, 0)),
+				    Base = Table.FromColumns({Dias}, type table [data = date]),
+				    Meses = {"jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"},
+				    ComAno = Table.AddColumn(Base, "ano", each Date.Year([data]), Int64.Type),
+				    ComMes = Table.AddColumn(ComAno, "mes", each Date.Month([data]), Int64.Type),
+				    ComMesAno = Table.AddColumn(ComMes, "mes_ano", each Meses{[mes] - 1} & "/" & Text.From([ano]), type text),
+				    ComAnoMes = Table.AddColumn(ComMesAno, "ano_mes", each [ano] * 100 + [mes], Int64.Type),
+				    ComDistancia = Table.AddColumn(
+				        ComAnoMes,
+				        "meses_da_referencia",
+				        each ([ano] - Date.Year(Referencia)) * 12 + [mes] - Date.Month(Referencia),
+				        Int64.Type
+				    )
+				in
+				    ComDistancia
+
+	annotation PBI_ResultType = Table

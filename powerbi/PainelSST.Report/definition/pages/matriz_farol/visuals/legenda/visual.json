@@ -1,0 +1,147 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "legenda",
+  "position": {
+    "x": 20,
+    "y": 72,
+    "z": 3,
+    "height": 36,
+    "width": 1240,
+    "tabOrder": 3
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "■ ",
+                    "textStyle": {
+                      "color": "#E06666",
+                      "fontSize": "12pt"
+                    }
+                  },
+                  {
+                    "value": "Vencido    ",
+                    "textStyle": {
+                      "fontSize": "9pt"
+                    }
+                  },
+                  {
+                    "value": "■ ",
+                    "textStyle": {
+                      "color": "#C27BA0",
+                      "fontSize": "12pt"
+                    }
+                  },
+                  {
+                    "value": "Sem registro (obrigatório)    ",
+                    "textStyle": {
+                      "fontSize": "9pt"
+                    }
+                  },
+                  {
+                    "value": "■ ",
+                    "textStyle": {
+                      "color": "#F6B26B",
+                      "fontSize": "12pt"
+                    }
+                  },
+                  {
+                    "value": "Vence em até 30 dias    ",
+                    "textStyle": {
+                      "fontSize": "9pt"
+                    }
+                  },
+                  {
+                    "value": "■ ",
+                    "textStyle": {
+                      "color": "#FFD966",
+                      "fontSize": "12pt"
+                    }
+                  },
+                  {
+                    "value": "Vence em 31 a 60 dias    ",
+                    "textStyle": {
+                      "fontSize": "9pt"
+                    }
+                  },
+                  {
+                    "value": "■ ",
+                    "textStyle": {
+                      "color": "#FFF2CC",
+                      "fontSize": "12pt"
+                    }
+                  },
+                  {
+                    "value": "Vence em 61 a 90 dias    ",
+                    "textStyle": {
+                      "fontSize": "9pt"
+                    }
+                  },
+                  {
+                    "value": "■ ",
+                    "textStyle": {
+                      "color": "#93C47D",
+                      "fontSize": "12pt"
+                    }
+                  },
+                  {
+                    "value": "Válido    ",
+                    "textStyle": {
+                      "fontSize": "9pt"
+                    }
+                  },
+                  {
+                    "value": "■ ",
+                    "textStyle": {
+                      "color": "#B6D7A8",
+                      "fontSize": "12pt"
+                    }
+                  },
+                  {
+                    "value": "Sem vencimento    ",
+                    "textStyle": {
+                      "fontSize": "9pt"
+                    }
+                  },
+                  {
+                    "value": "■ ",
+                    "textStyle": {
+                      "color": "#D9D9D9",
+                      "fontSize": "12pt"
+                    }
+                  },
+                  {
+                    "value": "Condicional sem registro    ",
+                    "textStyle": {
+                      "fontSize": "9pt"
+                    }
+                  },
+                  {
+                    "value": "■ ",
+                    "textStyle": {
+                      "color": "#F3F3F3",
+                      "fontSize": "12pt"
+                    }
+                  },
+                  {
+                    "value": "Não aplicável    ",
+                    "textStyle": {
+                      "fontSize": "9pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

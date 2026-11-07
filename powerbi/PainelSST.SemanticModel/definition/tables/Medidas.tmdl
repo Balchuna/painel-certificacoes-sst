@@ -1,0 +1,304 @@
+/// Uma tabela vazia, só para as medidas de dax/medidas.dax ficarem juntas num lugar do painel de
+/// campos, em vez de espalhadas pelas tabelas. A coluna "oculta" existe porque toda tabela precisa
+/// de uma; esconda-a no Power BI e a tabela passa a mostrar só as medidas.
+table Medidas
+	lineageTag: 2b847cdb-2766-5488-aedd-4ee3c941cf6d
+
+	measure 'Data de Referência' = MAX ( parametro[data_referencia] )
+		formatString: dd/MM/yyyy
+		lineageTag: 4f3c1baa-15da-5c16-b8d5-9aa986a3086f
+
+	measure 'Funcionários Ativos' = CALCULATE ( COUNTROWS ( dim_funcionario ), KEEPFILTERS ( dim_funcionario[situacao] = "Ativo" ) )
+		formatString: 0
+		lineageTag: e9d265f9-15d3-5c37-a5e1-b5ce648901a7
+
+	/// Cada funcionário ativo vezes cada treinamento que a função dele exige (regra SIM).
+	/// Conta também o que nunca foi feito, que não tem linha em fato_certificacao: por isso a conta
+	/// passa pela tabela de regras, função a função, e não pela fato.
+	measure 'Itens Obrigatórios' =
+			SUMX (
+			    VALUES ( dim_funcao[funcao] ),
+			    CALCULATE ( [Funcionários Ativos] )
+			        * CALCULATE (
+			            COUNTROWS ( regra_funcao_treinamento ),
+			            KEEPFILTERS ( regra_funcao_treinamento[regra] = "SIM" )
+			        )
+			)
+		formatString: 0
+		lineageTag: bfcebbe2-64ff-5e2a-8529-040c49a71ec6
+
+	/// Itens obrigatórios que têm pelo menos uma emissão (vencida ou não).
+	measure 'Obrigatórios com Registro' =
+			CALCULATE (
+			    COUNTROWS ( fato_certificacao ),
+			    KEEPFILTERS ( fato_certificacao[vigente] = TRUE () ),
+			    KEEPFILTERS ( fato_certificacao[regra] = "SIM" ),
+			    KEEPFILTERS ( dim_funcionario[situacao] = "Ativo" )
+			)
+		formatString: 0
+		lineageTag: 6e265d5a-31b0-53d6-89d2-bb83af711a83
+
+	/// Itens com emissão vigente e data de vencimento. Treinamento que não vence fica de fora.
+	measure 'Itens com Vencimento' =
+			CALCULATE (
+			    COUNTROWS ( fato_certificacao ),
+			    KEEPFILTERS ( fato_certificacao[vigente] = TRUE () ),
+			    KEEPFILTERS ( fato_certificacao[regra] IN { "SIM", "CONDICIONAL" } ),
+			    KEEPFILTERS ( NOT ISBLANK ( fato_certificacao[data_vencimento] ) ),
+			    KEEPFILTERS ( dim_funcionario[situacao] = "Ativo" )
+			)
+		formatString: 0
+		lineageTag: 65bedbf1-88da-5031-9850-35419c2a94c9
+
+	/// Venceu antes da data de referência.
+	measure Vencidos =
+			VAR Referencia = [Data de Referência]
+			RETURN
+			    CALCULATE (
+			        [Itens com Vencimento],
+			        KEEPFILTERS ( fato_certificacao[data_vencimento] < Referencia )
+			    )
+		formatString: 0
+		lineageTag: 0b92ba28-2dc5-51cc-bce3-85682b030989
+
+	measure 'Obrigatórios Vencidos' = CALCULATE ( [Vencidos], KEEPFILTERS ( fato_certificacao[regra] = "SIM" ) )
+		formatString: 0
+		lineageTag: d5141468-fff2-5f06-b813-0f69eb571a3f
+
+	/// As janelas são cumulativas: "60 dias" inclui os de 30. Contam do dia 0 (vence na data de
+	/// referência) até o último dia da janela.
+	measure 'Vencem em 30 dias' =
+			VAR Referencia = [Data de Referência]
+			VAR Limite = Referencia + MAX ( parametro[janela_1] )
+			RETURN
+			    CALCULATE (
+			        [Itens com Vencimento],
+			        KEEPFILTERS (
+			            fato_certificacao[data_vencimento] >= Referencia
+			                && fato_certificacao[data_vencimento] <= Limite
+			        )
+			    )
+		formatString: 0
+		lineageTag: adea1799-2d91-5c93-8572-456ed94e383a
+
+	measure 'Vencem em 60 dias' =
+			VAR Referencia = [Data de Referência]
+			VAR Limite = Referencia + MAX ( parametro[janela_2] )
+			RETURN
+			    CALCULATE (
+			        [Itens com Vencimento],
+			        KEEPFILTERS (
+			            fato_certificacao[data_vencimento] >= Referencia
+			                && fato_certificacao[data_vencimento] <= Limite
+			        )
+			    )
+		formatString: 0
+		lineageTag: 3bbfbe5c-d218-56ac-8a18-424de87d25f9
+
+	measure 'Vencem em 90 dias' =
+			VAR Referencia = [Data de Referência]
+			VAR Limite = Referencia + MAX ( parametro[janela_3] )
+			RETURN
+			    CALCULATE (
+			        [Itens com Vencimento],
+			        KEEPFILTERS (
+			            fato_certificacao[data_vencimento] >= Referencia
+			                && fato_certificacao[data_vencimento] <= Limite
+			        )
+			    )
+		formatString: 0
+		lineageTag: b4075413-dd46-5266-ab46-b4a5d33a631f
+
+	/// Obrigatório em dia: tem emissão e não venceu (inclui o que vence logo e o que não vence).
+	measure 'Itens Válidos' = [Obrigatórios com Registro] - [Obrigatórios Vencidos]
+		formatString: 0
+		lineageTag: e18617cd-9684-5f2e-b248-92dfc203a603
+
+	/// O que deixa alguém irregular: obrigatório sem registro ou vencido.
+	measure 'Pendentes Obrigatórios' = [Itens Obrigatórios] - [Itens Válidos]
+		formatString: 0
+		lineageTag: 783cb7c2-69e2-5d35-a088-dbabbcf02c86
+
+	measure 'Obrigatórios Sem Registro' = [Itens Obrigatórios] - [Obrigatórios com Registro]
+		formatString: 0
+		lineageTag: 19312dd2-7003-5092-8b14-56b51f3b0126
+
+	measure '% Conformidade' = DIVIDE ( [Itens Válidos], [Itens Obrigatórios] )
+		formatString: 0.0%
+		lineageTag: 539ba7a9-7d14-51b2-8dd4-d72e309416df
+
+	measure '% Pendência' = DIVIDE ( [Pendentes Obrigatórios], [Itens Obrigatórios] )
+		formatString: 0.0%
+		lineageTag: 2e7e4424-952f-59b1-a279-d88338ef5200
+
+	/// Funcionários ativos com pelo menos uma pendência obrigatória.
+	measure 'Funcionários Irregulares' =
+			COUNTROWS (
+			    FILTER (
+			        CALCULATETABLE (
+			            VALUES ( dim_funcionario[matricula] ),
+			            KEEPFILTERS ( dim_funcionario[situacao] = "Ativo" )
+			        ),
+			        [Pendentes Obrigatórios] > 0
+			    )
+			)
+		formatString: 0
+		lineageTag: f5df129f-bbd4-5c84-bf41-81c979589aea
+
+	/// Verdadeiro quando o contexto é exatamente um funcionário e um treinamento.
+	measure 'Item Único' = HASONEVALUE ( dim_funcionario[matricula] ) && HASONEVALUE ( dim_treinamento[codigo] )
+		lineageTag: 46b62320-2082-5c56-8885-a2889b897a81
+
+	/// A regra mora em regra_funcao_treinamento, que o filtro do funcionário não alcança (ele não sobe
+	/// para dim_funcao). Por isso a medida pega a função do funcionário e filtra a regra por ela.
+	measure 'Regra do Item' =
+			IF (
+			    [Item Único],
+			    VAR Funcao =
+			        IF ( HASONEVALUE ( dim_funcionario[funcao] ), VALUES ( dim_funcionario[funcao] ) )
+			    RETURN
+			        CALCULATE (
+			            IF (
+			                HASONEVALUE ( regra_funcao_treinamento[regra] ),
+			                VALUES ( regra_funcao_treinamento[regra] )
+			            ),
+			            dim_funcao[funcao] = Funcao
+			        )
+			)
+		lineageTag: 44ea4da0-2afa-507f-9d34-9662f28ea276
+
+	measure 'Emissão do Item' =
+			IF (
+			    [Item Único],
+			    CALCULATE ( MAX ( fato_certificacao[data_emissao] ), KEEPFILTERS ( fato_certificacao[vigente] = TRUE () ) )
+			)
+		formatString: dd/MM/yyyy
+		lineageTag: 68767e98-b113-54b5-bd5b-d127dec4133b
+
+	measure 'Vencimento do Item' =
+			IF (
+			    [Item Único],
+			    CALCULATE ( MAX ( fato_certificacao[data_vencimento] ), KEEPFILTERS ( fato_certificacao[vigente] = TRUE () ) )
+			)
+		formatString: dd/MM/yyyy
+		lineageTag: 0bdf2b67-b229-5459-a1e0-f4ff14b13b0b
+
+	/// Negativo: venceu há tantos dias. Vazio quando não há emissão ou o treinamento não vence.
+	measure 'Dias para Vencer' =
+			VAR Vencimento = [Vencimento do Item]
+			RETURN
+			    IF ( NOT ISBLANK ( Vencimento ), INT ( Vencimento - [Data de Referência] ) )
+		formatString: 0
+		lineageTag: 044610bc-cf12-508d-8df6-1ea125c897ff
+
+	/// A situação do item como número, do mais grave para o menos grave. Ordena a legenda e as cores.
+	///   1 Vencido                  4 Vence entre janela_1 + 1 e janela_2   7 Sem vencimento
+	///   2 Sem registro (SIM)       5 Vence entre janela_2 + 1 e janela_3   8 Condicional sem registro
+	///   3 Vence em até janela_1    6 Válido                                9 Não aplicável (NÃO)
+	/// Vazio para funcionário desligado: o painel só olha quem está ativo.
+	measure 'Código Farol' =
+			VAR Situacao =
+			    IF ( HASONEVALUE ( dim_funcionario[situacao] ), VALUES ( dim_funcionario[situacao] ) )
+			VAR Ativo = Situacao = "Ativo"
+			VAR Regra = [Regra do Item]
+			VAR Emissao = [Emissão do Item]
+			VAR Vencimento = [Vencimento do Item]
+			VAR Dias = [Dias para Vencer]
+			RETURN
+			    IF (
+			        [Item Único] && Ativo && NOT ISBLANK ( Regra ),
+			        SWITCH (
+			            TRUE (),
+			            Regra = "NÃO", 9,
+			            ISBLANK ( Emissao ) && Regra = "SIM", 2,
+			            ISBLANK ( Emissao ), 8,
+			            ISBLANK ( Vencimento ), 7,
+			            Dias < 0, 1,
+			            Dias <= MAX ( parametro[janela_1] ), 3,
+			            Dias <= MAX ( parametro[janela_2] ), 4,
+			            Dias <= MAX ( parametro[janela_3] ), 5,
+			            6
+			        )
+			    )
+		formatString: 0
+		lineageTag: faad0bbb-c4bd-5755-a07c-20fc22c67fab
+
+	/// O mesmo texto do SQL (vw_status_item), com os dias das janelas da tabela parametro.
+	measure 'Status Farol' =
+			VAR J1 = MAX ( parametro[janela_1] )
+			VAR J2 = MAX ( parametro[janela_2] )
+			VAR J3 = MAX ( parametro[janela_3] )
+			RETURN
+			    SWITCH (
+			        [Código Farol],
+			        1, "Vencido",
+			        2, "Sem registro",
+			        3, "Vence em até " & J1 & " dias",
+			        4, "Vence em " & ( J1 + 1 ) & " a " & J2 & " dias",
+			        5, "Vence em " & ( J2 + 1 ) & " a " & J3 & " dias",
+			        6, "Válido",
+			        7, "Sem vencimento",
+			        8, "Condicional sem registro",
+			        9, "Não aplicável"
+			    )
+		lineageTag: cd718e3f-08e3-526c-bf5b-889ccfcba252
+
+	/// Cor de fundo da célula da matriz (formatação condicional > cor da tela de fundo > valor do campo).
+	/// As mesmas cores estão no tema, em tema/tema.json.
+	measure 'Cor Farol' =
+			SWITCH (
+			    [Código Farol],
+			    1, "#E06666",
+			    2, "#C27BA0",
+			    3, "#F6B26B",
+			    4, "#FFD966",
+			    5, "#FFF2CC",
+			    6, "#93C47D",
+			    7, "#B6D7A8",
+			    8, "#D9D9D9",
+			    9, "#F3F3F3"
+			)
+		lineageTag: 92ddbc18-f200-5100-bc2d-1097be112781
+
+	/// O texto da célula da matriz: a data de vencimento quando há uma, senão uma palavra curta.
+	measure 'Rótulo Farol' =
+			VAR Codigo = [Código Farol]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( Codigo ), BLANK (),
+			        Codigo = 2, "falta",
+			        Codigo = 7, "sem venc.",
+			        Codigo = 8, "cond.",
+			        Codigo = 9, "n/a",
+			        FORMAT ( [Vencimento do Item], "dd/mm/yy" )
+			    )
+		lineageTag: b58ac2e4-5e80-5d67-8794-02d5548f846d
+
+	/// 1 quando o item vence entre a data de referência e o fim da maior janela: filtro da agenda.
+	measure 'Na Agenda' = IF ( [Código Farol] IN { 3, 4, 5 }, 1 )
+		formatString: 0
+		lineageTag: bf2bf1d4-f201-5a28-8f4e-ab3d99554e45
+
+	measure 'Linhas Rejeitadas' = COUNTROWS ( qualidade_rejeicoes )
+		formatString: 0
+		lineageTag: b8a32b70-0240-5ff0-899d-38e97dea5b91
+
+	column oculta
+		dataType: string
+		isHidden
+		lineageTag: 4f63ab59-61e2-5264-995e-e31b94ee0813
+		summarizeBy: none
+		sourceColumn: oculta
+
+		annotation SummarizationSetBy = User
+
+	partition Medidas = m
+		mode: import
+		source =
+				let
+				    Medidas = #table(type table [oculta = text], {})
+				in
+				    Medidas
+
+	annotation PBI_ResultType = Table

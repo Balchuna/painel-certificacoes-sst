@@ -1,0 +1,35 @@
+{
+  "name": "Farol SST",
+  "dataColors": [
+    "#34495E",
+    "#5D6D7E",
+    "#85929E",
+    "#AEB6BF",
+    "#1F618D",
+    "#7FB3D5",
+    "#E06666",
+    "#C27BA0",
+    "#F6B26B",
+    "#FFD966",
+    "#FFF2CC",
+    "#93C47D",
+    "#B6D7A8",
+    "#D9D9D9",
+    "#F3F3F3"
+  ],
+  "background": "#FFFFFF",
+  "foreground": "#252423",
+  "tableAccent": "#34495E",
+  "good": "#93C47D",
+  "neutral": "#FFD966",
+  "bad": "#E06666",
+  "maximum": "#93C47D",
+  "center": "#FFD966",
+  "minimum": "#E06666",
+  "textClasses": {
+    "callout": { "fontFace": "Segoe UI Semibold", "fontSize": 28, "color": "#252423" },
+    "title": { "fontFace": "Segoe UI Semibold", "fontSize": 12, "color": "#252423" },
+    "header": { "fontFace": "Segoe UI Semibold", "fontSize": 11, "color": "#252423" },
+    "label": { "fontFace": "Segoe UI", "fontSize": 10, "color": "#5D6D7E" }
+  }
+}

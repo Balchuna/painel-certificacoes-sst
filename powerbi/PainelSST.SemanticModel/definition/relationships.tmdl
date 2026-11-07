@@ -1,0 +1,28 @@
+relationship ef231765-c31b-5284-ad88-9aba097ef80e
+	fromColumn: dim_funcionario.funcao
+	toColumn: dim_funcao.funcao
+
+relationship 52348004-6fc4-564b-b350-ebce4bac697e
+	fromColumn: dim_funcionario.equipe
+	toColumn: dim_equipe.equipe
+
+relationship ed89af2c-d6d0-52b4-84e2-72aacd54a8fa
+	fromColumn: fato_certificacao.matricula
+	toColumn: dim_funcionario.matricula
+
+relationship 37d6367d-cdf1-544f-942f-c15ace72f543
+	fromColumn: fato_certificacao.treinamento
+	toColumn: dim_treinamento.codigo
+
+relationship 2a3880de-0991-5834-abd2-76ea153227ed
+	fromColumn: regra_funcao_treinamento.funcao
+	toColumn: dim_funcao.funcao
+
+relationship c6e94a7e-ce3f-5633-b98a-4879ab95a3f7
+	fromColumn: regra_funcao_treinamento.treinamento
+	toColumn: dim_treinamento.codigo
+
+relationship 4897c73e-a299-5bed-9c5c-f707860a3503
+	joinOnDateBehavior: datePartOnly
+	fromColumn: fato_certificacao.data_vencimento
+	toColumn: dim_calendario.data
