@@ -172,3 +172,57 @@ Para conferir os próprios testes, cada regra acima foi quebrada de propósito n
 ### CSV com o mesmo conteúdo em qualquer sistema
 
 Os CSVs saem em UTF-8 e com fim de linha LF, e o `.gitattributes` mantém o LF no Windows. Assim, uma nova limpeza sem mudança nos dados não aparece no git.
+
+## Fase 3: pacote do Power BI
+
+### O Power Query refaz a limpeza
+
+O painel lê as planilhas brutas de `data/entrada`, e não os CSVs de `data/limpa`. É o que o spec pede: limpeza, tipagem, duplicados, rejeições e despivotar, tudo no Power Query. A limpeza em Python continua sendo a referência. O teste exige que as tabelas do Power Query sejam iguais, coluna a coluna, às de `data/limpa`, com a entrada padrão e com uma entrada mais bagunçada: matrícula com espaços, tabulação no nome, espaço que não quebra na equipe, data com hora, data em texto com espaços, data no formato aaaa-mm-dd, célula só com espaços, linha em branco no meio, linhas extras no `Historico`, regra em minúsculas e outras janelas de alerta.
+
+### Uma pasta só como fonte
+
+Todas as consultas leem a pasta do parâmetro `PastaEntrada`, por uma única consulta, `Arquivos`. Trocar de pasta é mudar um valor. E, com uma fonte só, o Power BI não esbarra nas regras de privacidade que aparecem quando uma consulta mistura duas fontes.
+
+### Data como número de série
+
+O Power Query entrega as datas das planilhas geradas como o número que o Excel guarda por baixo da data (46327 é 01/11/2026), e não como data. Por isso `fn_LerData` lê número como data. Com isso, ele aceita tanto a planilha gravada pelo script quanto uma salva pelo Excel, que pode chegar como data.
+
+Há uma diferença em relação ao Python: se alguém digitar 45000 numa célula com formato Geral, a limpeza em Python rejeita a célula, e o Power Query lê 15/03/2023. O Power Query não consegue diferenciar as duas coisas, porque recebe o mesmo número. Os dados gerados não têm esse caso.
+
+### Matrícula inválida para a carga
+
+Como no Python, uma matrícula que não é número interrompe a atualização, com a aba e a linha na mensagem. Descartar a linha esconderia um funcionário inteiro; sem matrícula, não dá para saber de quem são as datas.
+
+### Colunas a mais do que a versão limpa
+
+O modelo tem algumas colunas que os CSVs não têm: vencimento, emissão vigente e regra na fato; `ordem` nos treinamentos; o rótulo "matrícula - nome"; e o calendário. Elas existem para as medidas ficarem curtas e os visuais, simples. Cada uma é conferida contra o SQL: o vencimento contra a conta de meses do Excel, a vigente contra `vw_registro_vigente`, a regra contra a tabela de regras.
+
+### Medidas devolvem vazio, não zero
+
+Quando não há nada a contar, a medida devolve vazio. Com zero, cada matriz e cada tabela passariam a mostrar todas as combinações de funcionário e treinamento, inclusive as que não têm nada. O custo é um cartão mostrar "(Em branco)" quando o filtro não encontra nada; o passo a passo explica como pôr zero num cartão específico.
+
+### Nomes do spec, dias da planilha
+
+As medidas se chamam "Vencem em 30 dias", "60" e "90", como no spec, mas os dias vêm da aba `Alertas`. Mudar as janelas para 15, 45 e 75 muda as contas, não os nomes. O texto do `Status Farol` usa os dias de verdade, como o SQL: "Vence em até 15 dias".
+
+### A agenda não traz o que já venceu
+
+A agenda de reciclagem mostra o que vence da data de referência até o fim da maior janela, igual à consulta `04_agenda_reciclagem`. O que já venceu aparece nos cartões e na matriz, em vermelho. Misturar os dois na mesma lista faria a agenda começar sempre pelos atrasados mais antigos.
+
+### A célula da matriz: texto e cor
+
+Cada célula da matriz mostra um texto curto (a data de vencimento, "falta", "cond.", "sem venc.", "n/a") e tem a cor de fundo da situação. A cor vem de uma medida, `Cor Farol`, e não de regras de cor montadas à mão no Power BI. Assim, a regra fica escrita num lugar só, e o teste confere que cada situação tem uma cor diferente e que as cores estão no tema.
+
+### O Excel como banco de provas
+
+O Power BI Desktop não está instalado aqui, e não há como automatizá-lo. O Excel tem o mesmo motor de Power Query e o mesmo motor de modelo de dados que roda DAX. Por isso, `tests/test_powerbi.py` abre o Excel por automação, cria as consultas a partir dos arquivos `.m`, carrega as tabelas no modelo de dados, cria as relações de [MODELO.md](MODELO.md) e roda as medidas de `dax/medidas.dax`. O resultado tem de bater com o gabarito do SQL.
+
+Os dados gerados não têm nenhum item vencendo exatamente na data de referência, no último dia de uma janela ou no dia seguinte. Sem esses casos, trocar `<` por `<=` numa medida passaria nos testes. Por isso, o cenário variado planta um item obrigatório em cada fronteira: vence ontem, vence hoje, vence no último dia de cada janela e no dia seguinte. Um teste confere que eles estão lá.
+
+O que esse teste não cobre: os visuais, a formatação condicional e diferenças de versão entre o motor do Excel e o do Power BI Desktop. Essa conferência fica para a montagem, e o passo a passo diz que número cada visual tem de mostrar.
+
+### Só funções que o Excel também conhece
+
+O motor do Excel não conhece todas as funções do Power BI Desktop. A primeira rodada do teste mostrou uma: `SELECTEDVALUE`. Onde ela caberia, as medidas usam `IF ( HASONEVALUE ( coluna ), VALUES ( coluna ) )`, que faz a mesma conta e funciona nos dois. Assim, o arquivo que o teste confere é o mesmo que se cola no Power BI, sem uma versão para cada motor.
+
+O teste precisa de Windows, Excel e pywin32, e leva alguns minutos. Sem Excel, ele é pulado. Para rodar só o resto: `python -m pytest -m "not excel"`.

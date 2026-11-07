@@ -1,6 +1,6 @@
 # Painel de Certificações SST
 
-Projeto em construção. **Já existem a fase 1, com os dados de entrada, e a fase 2, com o SQL de referência e o gabarito.** O painel em Power BI vem depois e vai precisar bater com esse gabarito.
+Projeto em construção. **Já existem a fase 1, com os dados de entrada, a fase 2, com o SQL de referência e o gabarito, e a fase 3, com o pacote do Power BI: consultas, medidas, tema e o passo a passo para montar.** O painel montado, com o PDF e as imagens, vem na fase 4 e precisa bater com o gabarito.
 
 A pergunta que o painel vai responder: numa obra com cerca de 150 funcionários, quem está irregular hoje, o que vence nos próximos 30, 60 e 90 dias, e qual função e qual treinamento concentram as pendências?
 
@@ -69,7 +69,11 @@ Cada passo usa o resultado do anterior:
 1. `gerar_dados.py` regrava as duas planilhas de `data/entrada`.
 2. `limpar_dados.py` lê as planilhas e grava a versão limpa em `data/limpa`, um CSV por tabela.
 3. `gerar_gabarito.py` monta o banco `data/painel.sqlite` com a versão limpa e grava o resultado das seis consultas em `sql/gabarito`.
-4. Os testes conferem tudo isso. Levam de um a dois minutos.
+4. Os testes conferem tudo isso. Os do Power BI abrem o Excel e levam uns 20 minutos; os demais, de um a dois minutos. Sem Excel, os do Power BI são pulados. Para rodar só os demais:
+
+```bash
+python -m pytest -q -m "not excel"
+```
 
 A mesma semente e a mesma data de referência geram sempre os mesmos arquivos. Para outro cenário:
 
@@ -182,6 +186,21 @@ A NR-35 e o ASO empatam em número de pendências. A NR-35 fica à frente pela t
 
 `tests/calculo_pandas.py` refaz as seis respostas por outro caminho: lê as planilhas brutas com pandas, limpa do próprio jeito e faz as contas sem usar a limpeza nem o SQL. O teste `tests/test_gabarito.py` exige que os dois caminhos concordem, também com outra semente e outra data de referência.
 
+## O pacote do Power BI
+
+O painel ainda não está montado: o Power BI Desktop não roda por automação. Está tudo pronto para montar, e [docs/MONTAGEM.md](docs/MONTAGEM.md) diz como, clique a clique, com o número que cada visual tem de mostrar.
+
+| Parte | Onde | O que faz |
+|---|---|---|
+| Consultas | `powerquery/*.m` | leem as planilhas brutas, limpam, tipam, tiram o duplicado, registram as rejeições e despivotam o `Controle` do formato largo para o longo |
+| Modelo | [docs/MODELO.md](docs/MODELO.md) | o modelo em estrela: tabelas, colunas e as sete relações |
+| Medidas | `dax/medidas.dax` | as medidas do painel, de "Funcionários Ativos" ao "Status Farol" |
+| Tema | `tema/tema.json` | as nove cores do farol e uma paleta neutra |
+
+As quatro páginas: visão geral, matriz farol, agenda de reciclagem e qualidade dos dados.
+
+`tests/test_powerbi.py` monta esse pacote dentro do Excel, que tem os mesmos motores de Power Query e de modelo de dados do Power BI, e confere que as tabelas são iguais às de `data/limpa` e que as medidas dão os números do gabarito. O teste roda duas vezes: com a entrada padrão e com uma entrada mais bagunçada, que também tem itens vencendo em cada fronteira das janelas. Os visuais e as cores na tela ficam para a conferência na montagem.
+
 ## Estrutura
 
 ```
@@ -194,7 +213,12 @@ sql/01_tabelas.sql          as tabelas, com as regras que os dados precisam segu
 sql/02_views.sql            as três views: registro vigente, status do item, pendências
 sql/consultas/              as seis consultas que respondem à pergunta
 sql/gabarito/               o resultado delas, que o painel precisa bater
+powerquery/                 uma consulta Power Query por arquivo
+dax/medidas.dax             as medidas
+tema/tema.json              as cores do painel
 tests/                      os testes de cada etapa e o cálculo independente em pandas
 docs/COMO-FUNCIONA.md       o projeto explicado sem jargão
 docs/DECISOES.md            as escolhas feitas e o porquê
+docs/MODELO.md              o modelo de dados do painel
+docs/MONTAGEM.md            o passo a passo para montar o painel
 ```
