@@ -1,2 +1,5 @@
 # CSVs com fim de linha LF em qualquer sistema: a mesma limpeza dá os mesmos bytes.
 *.csv text eol=lf
+
+# O projeto do Power BI com fim de linha LF: o teste compara powerbi/ com o gerador byte a byte.
+powerbi/** text eol=lf
