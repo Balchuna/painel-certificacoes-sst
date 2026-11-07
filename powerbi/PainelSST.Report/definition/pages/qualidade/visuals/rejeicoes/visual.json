@@ -27,7 +27,7 @@
                 }
               },
               "queryRef": "qualidade_rejeicoes.aba",
-              "nativeQueryRef": "aba",
+              "nativeQueryRef": "Aba",
               "displayName": "Aba"
             },
             {
@@ -42,7 +42,7 @@
                 }
               },
               "queryRef": "qualidade_rejeicoes.linha",
-              "nativeQueryRef": "linha",
+              "nativeQueryRef": "Linha",
               "displayName": "Linha"
             },
             {
@@ -57,7 +57,7 @@
                 }
               },
               "queryRef": "qualidade_rejeicoes.matricula",
-              "nativeQueryRef": "matricula",
+              "nativeQueryRef": "Matrícula",
               "displayName": "Matrícula"
             },
             {
@@ -72,7 +72,7 @@
                 }
               },
               "queryRef": "qualidade_rejeicoes.coluna",
-              "nativeQueryRef": "coluna",
+              "nativeQueryRef": "Coluna",
               "displayName": "Coluna"
             },
             {
@@ -87,7 +87,7 @@
                 }
               },
               "queryRef": "qualidade_rejeicoes.valor_original",
-              "nativeQueryRef": "valor_original",
+              "nativeQueryRef": "Valor original",
               "displayName": "Valor original"
             },
             {
@@ -102,7 +102,7 @@
                 }
               },
               "queryRef": "qualidade_rejeicoes.motivo",
-              "nativeQueryRef": "motivo",
+              "nativeQueryRef": "Motivo",
               "displayName": "Motivo"
             },
             {
@@ -117,7 +117,7 @@
                 }
               },
               "queryRef": "qualidade_rejeicoes.acao",
-              "nativeQueryRef": "acao",
+              "nativeQueryRef": "Ação",
               "displayName": "Ação"
             }
           ]

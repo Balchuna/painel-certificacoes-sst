@@ -27,7 +27,7 @@
                 }
               },
               "queryRef": "dim_funcao.funcao",
-              "nativeQueryRef": "funcao",
+              "nativeQueryRef": "Função",
               "displayName": "Função"
             }
           ]

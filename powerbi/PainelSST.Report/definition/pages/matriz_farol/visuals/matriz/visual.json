@@ -27,7 +27,7 @@
                 }
               },
               "queryRef": "dim_funcionario.funcionario",
-              "nativeQueryRef": "funcionario",
+              "nativeQueryRef": "Funcionário",
               "displayName": "Funcionário"
             }
           ]
@@ -46,7 +46,7 @@
                 }
               },
               "queryRef": "dim_treinamento.codigo",
-              "nativeQueryRef": "codigo",
+              "nativeQueryRef": "Treinamento",
               "displayName": "Treinamento"
             }
           ]
@@ -65,7 +65,7 @@
                 }
               },
               "queryRef": "Medidas.Rótulo Farol",
-              "nativeQueryRef": "Rótulo Farol",
+              "nativeQueryRef": "Situação",
               "displayName": "Situação"
             }
           ]

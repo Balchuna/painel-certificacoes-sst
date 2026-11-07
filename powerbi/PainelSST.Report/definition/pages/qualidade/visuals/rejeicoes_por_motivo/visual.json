@@ -27,7 +27,7 @@
                 }
               },
               "queryRef": "qualidade_rejeicoes.motivo",
-              "nativeQueryRef": "motivo",
+              "nativeQueryRef": "Motivo",
               "displayName": "Motivo"
             }
           ]

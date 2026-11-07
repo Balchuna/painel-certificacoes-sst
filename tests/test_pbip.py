@@ -297,6 +297,19 @@ def test_visuais_usam_campos_que_existem():
             assert campo in modelo, (pagina, visual["name"], campo)
 
 
+def test_campos_diferentes_de_um_visual_tem_nomes_internos_diferentes():
+    # O Power BI Desktop não desenha o visual quando dois campos diferentes têm o mesmo
+    # nativeQueryRef, por exemplo o nome de dim_funcao e o de dim_equipe, ambos "nome".
+    for pagina, visual in visuais():
+        estado = visual["visual"].get("query", {}).get("queryState", {})
+        campos_por_nome = {}
+        for papel in estado.values():
+            for projecao in papel.get("projections", []):
+                campos_por_nome.setdefault(projecao["nativeQueryRef"], set()).add(projecao["queryRef"])
+        repetidos = {nome: campos for nome, campos in campos_por_nome.items() if len(campos) > 1}
+        assert not repetidos, (pagina, visual["name"], repetidos)
+
+
 def test_cartoes_da_visao_geral():
     cartoes = {
         nome_do_campo(campo)

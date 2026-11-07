@@ -27,7 +27,7 @@
                 }
               },
               "queryRef": "dim_calendario.mes_ano",
-              "nativeQueryRef": "mes_ano",
+              "nativeQueryRef": "Mês",
               "displayName": "Mês"
             }
           ]

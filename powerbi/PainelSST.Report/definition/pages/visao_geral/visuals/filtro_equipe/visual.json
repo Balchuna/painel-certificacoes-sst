@@ -27,7 +27,7 @@
                 }
               },
               "queryRef": "dim_equipe.equipe",
-              "nativeQueryRef": "equipe",
+              "nativeQueryRef": "Equipe",
               "displayName": "Equipe"
             }
           ]

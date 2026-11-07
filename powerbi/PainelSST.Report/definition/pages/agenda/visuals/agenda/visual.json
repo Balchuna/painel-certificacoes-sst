@@ -27,7 +27,7 @@
                 }
               },
               "queryRef": "Medidas.Vencimento do Item",
-              "nativeQueryRef": "Vencimento do Item",
+              "nativeQueryRef": "Vencimento",
               "displayName": "Vencimento"
             },
             {
@@ -42,7 +42,7 @@
                 }
               },
               "queryRef": "Medidas.Dias para Vencer",
-              "nativeQueryRef": "Dias para Vencer",
+              "nativeQueryRef": "Dias",
               "displayName": "Dias"
             },
             {
@@ -57,7 +57,7 @@
                 }
               },
               "queryRef": "dim_funcionario.matricula",
-              "nativeQueryRef": "matricula",
+              "nativeQueryRef": "Matrícula",
               "displayName": "Matrícula"
             },
             {
@@ -72,7 +72,7 @@
                 }
               },
               "queryRef": "dim_funcionario.nome",
-              "nativeQueryRef": "nome",
+              "nativeQueryRef": "Nome",
               "displayName": "Nome"
             },
             {
@@ -87,7 +87,7 @@
                 }
               },
               "queryRef": "dim_funcionario.funcao",
-              "nativeQueryRef": "funcao",
+              "nativeQueryRef": "Função",
               "displayName": "Função"
             },
             {
@@ -102,7 +102,7 @@
                 }
               },
               "queryRef": "dim_funcionario.equipe",
-              "nativeQueryRef": "equipe",
+              "nativeQueryRef": "Equipe",
               "displayName": "Equipe"
             },
             {
@@ -117,7 +117,7 @@
                 }
               },
               "queryRef": "dim_treinamento.codigo",
-              "nativeQueryRef": "codigo",
+              "nativeQueryRef": "Treinamento",
               "displayName": "Treinamento"
             },
             {
@@ -132,7 +132,7 @@
                 }
               },
               "queryRef": "dim_treinamento.nome",
-              "nativeQueryRef": "nome",
+              "nativeQueryRef": "Descrição",
               "displayName": "Descrição"
             },
             {
@@ -147,7 +147,7 @@
                 }
               },
               "queryRef": "Medidas.Emissão do Item",
-              "nativeQueryRef": "Emissão do Item",
+              "nativeQueryRef": "Emissão",
               "displayName": "Emissão"
             },
             {
@@ -162,7 +162,7 @@
                 }
               },
               "queryRef": "Medidas.Status Farol",
-              "nativeQueryRef": "Status Farol",
+              "nativeQueryRef": "Situação",
               "displayName": "Situação"
             }
           ]

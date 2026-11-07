@@ -337,7 +337,11 @@ def referencia(campo: dict) -> str:
 
 
 def projecao(campo: dict, rotulo: str | None = None) -> dict:
-    resultado = {"field": campo, "queryRef": referencia(campo), "nativeQueryRef": next(iter(campo.values()))["Property"]}
+    # Com rótulo, o nome interno é o rótulo, como o Desktop faz ao renomear um campo no visual.
+    # Sem isso, o nome de dim_funcionario e o de dim_treinamento seriam ambos "nome", e o
+    # Desktop não desenha o visual.
+    nome = rotulo or next(iter(campo.values()))["Property"]
+    resultado = {"field": campo, "queryRef": referencia(campo), "nativeQueryRef": nome}
     if rotulo:
         resultado["displayName"] = rotulo
     return resultado
