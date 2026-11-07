@@ -219,7 +219,7 @@ Na fase 3, o Power BI Desktop não estava instalado aqui. O Excel tem o mesmo mo
 
 Os dados gerados não têm nenhum item vencendo exatamente na data de referência, no último dia de uma janela ou no dia seguinte. Sem esses casos, trocar `<` por `<=` numa medida passaria nos testes. Por isso, o cenário variado planta um item obrigatório em cada fronteira: vence ontem, vence hoje, vence no último dia de cada janela e no dia seguinte. Um teste confere que eles estão lá.
 
-O que esse teste não cobre: os visuais, a formatação condicional e diferenças de versão entre o motor do Excel e o do Power BI Desktop. A diferença entre os motores passou a ser conferida na fase 4; os visuais, ainda não.
+O que esse teste não cobre: os visuais, a formatação condicional e diferenças de versão entre o motor do Excel e o do Power BI Desktop. A diferença entre os motores e os visuais passaram a ser conferidos na fase 4.
 
 ### Só funções que o Excel também conhece
 
@@ -249,7 +249,7 @@ Os arquivos do relatório foram conferidos, durante o desenvolvimento, contra os
 
 ### Sem tema base
 
-Um relatório salvo pelo Power BI costuma levar, além do tema próprio, um tema base com o nome de uma versão do Desktop, copiado de dentro do programa. O projeto gerado traz só o tema de `tema/tema.json`, porque o tema base é um arquivo do programa e muda de uma versão para outra. O Desktop abriu o projeto assim, sem aviso; a aparência na tela ainda não foi conferida.
+Um relatório salvo pelo Power BI costuma levar, além do tema próprio, um tema base com o nome de uma versão do Desktop, copiado de dentro do programa. O projeto gerado traz só o tema de `tema/tema.json`, porque o tema base é um arquivo do programa e muda de uma versão para outra. O Desktop abriu o projeto assim, sem aviso, e as cores na tela são as do tema.
 
 ### Os números conferidos dentro do Power BI Desktop
 
@@ -259,4 +259,18 @@ Resultado em 07/11/2026, com o Power BI Desktop 2.159 da Microsoft Store: 47 tes
 
 O teste abre uma janela na tela, por isso só roda quando pedido: `python -m pytest -q tests/test_powerbi.py --desktop -m desktop`. No fim, fecha a janela sem salvar.
 
-O que ainda não foi conferido: a aparência dos visuais, as cores na tela e se cada visual mostra o que o passo a passo diz. Isso depende de abrir o projeto na tela, o que fica para a exportação do PDF e das imagens.
+### O painel conferido na tela
+
+Em 07/11/2026, o projeto foi aberto no Power BI Desktop 2.159 com a pasta de entrada deste repositório, e as quatro páginas foram conferidas na tela contra [MONTAGEM.md](MONTAGEM.md). Os números batem com o gabarito e as cores seguem a legenda do farol. A conferência achou três problemas que os testes em texto não pegavam:
+
+1. **A agenda não aparecia.** O Desktop mostrava um erro no lugar da tabela, porque dois campos dela tinham o mesmo nome interno, `nome`: o nome do funcionário e a descrição do treinamento. O PBIR guarda, para cada campo de um visual, um nome interno, e o Desktop não desenha o visual quando dois campos diferentes repetem esse nome. Agora o gerador usa o rótulo da coluna como nome interno, como o próprio Desktop faz quando se renomeia um campo, e um teste impede nomes repetidos num visual.
+2. **Textos cortados na visão geral.** Com nove cartões numa fila, a data de referência e os rótulos mais longos apareciam cortados, e o nome das funções mais longas também, no gráfico de barras. O cartão da data foi para o alto, ao lado do título; os outros oito ficaram numa fila, com rótulo em fonte 9; e o eixo do gráfico ganhou mais espaço.
+3. **Mensagem de erro enganosa.** Aberto com o caminho de exemplo de `PastaEntrada`, o Power BI dizia "parametros.xlsx não tem a aba Treinamentos", quando o erro era a pasta. O Power Query só lê o arquivo quando precisa dele, e o erro da pasta aparecia na hora de procurar a aba, dentro de um `try` que transformava qualquer erro em "não tem a aba". Agora `fn_LerAba` lê o arquivo na hora, com `Binary.Buffer`, e procura a aba sem `try`. A mensagem passou a ser "Não consegui ler controle_largo.xlsx na pasta ...", seguida do motivo que o Power Query deu. Um teste confere isso no Excel e no Power BI Desktop.
+
+### PDF e imagens
+
+O PDF de [docs/painel/](painel/) saiu do próprio Power BI, em **Arquivo > Exportar > Exportar em PDF**, e não tem o nome de ninguém nas propriedades do arquivo. As imagens das páginas saem desse PDF, com `scripts/imagens_do_pdf.py`, e não de capturas de tela. Assim, saem sempre do mesmo tamanho, sem pedaços da tela, e dá para refazer com um comando. O script usa a biblioteca pypdfium2, de licença livre (BSD e Apache); a PyMuPDF, mais conhecida, ficou de fora por ser AGPL.
+
+Limites do PDF: a matriz e a agenda têm barra de rolagem, e o PDF mostra só as primeiras linhas, as que cabem na página. O painel completo é o projeto aberto no Power BI.
+
+O que não foi conferido na tela: o clique em cada filtro de equipe e de função. A conta filtrada por função é conferida pelos testes, mas o clique no filtro, não.

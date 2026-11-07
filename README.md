@@ -1,8 +1,12 @@
 # Painel de Certificações SST
 
-Projeto em construção. **Já existem a fase 1, com os dados de entrada, a fase 2, com o SQL de referência e o gabarito, a fase 3, com o pacote do Power BI, e o projeto do Power BI pronto para abrir, em `powerbi/`, com as quatro páginas.** Os números do projeto foram conferidos dentro do Power BI Desktop e batem com o gabarito. Faltam o PDF e as imagens do painel, que dependem de abrir o projeto na tela.
+Projeto em construção. **Já existem a fase 1, com os dados de entrada, a fase 2, com o SQL de referência e o gabarito, a fase 3, com o pacote do Power BI, e o projeto do Power BI pronto para abrir, em `powerbi/`, com as quatro páginas.** Os números do projeto foram conferidos dentro do Power BI Desktop e batem com o gabarito. O painel também foi aberto e conferido na tela, e o PDF e as imagens das quatro páginas estão em [docs/painel/](docs/painel/).
 
 A pergunta que o painel vai responder: numa obra com cerca de 150 funcionários, quem está irregular hoje, o que vence nos próximos 30, 60 e 90 dias, e qual função e qual treinamento concentram as pendências?
+
+![Página Visão geral do painel: oito cartões com os números do dia, a conformidade de cada função e os itens que vencem a cada mês](docs/painel/1-visao-geral.png)
+
+As outras páginas: [matriz farol](docs/painel/2-matriz-farol.png), [agenda de reciclagem](docs/painel/3-agenda-de-reciclagem.png) e [qualidade dos dados](docs/painel/4-qualidade-dos-dados.png). As quatro juntas estão em [docs/painel/painel.pdf](docs/painel/painel.pdf).
 
 Para entender o projeto sem jargão, leia [docs/COMO-FUNCIONA.md](docs/COMO-FUNCIONA.md). As escolhas e o porquê estão em [docs/DECISOES.md](docs/DECISOES.md).
 
@@ -215,7 +219,7 @@ As quatro páginas: visão geral, matriz farol, agenda de reciclagem e qualidade
 
 `tests/test_powerbi.py` confere que as tabelas são iguais às de `data/limpa` e que as medidas dão os números do gabarito. Roda em dois motores. No Excel, que tem o mesmo Power Query e o mesmo motor de modelo de dados do Power BI, monta o pacote por automação. No Power BI Desktop, abre o projeto gerado, atualiza e consulta o motor dele. Em cada motor, roda duas vezes: com a entrada padrão e com uma entrada mais bagunçada, que também tem itens vencendo em cada fronteira das janelas.
 
-`tests/test_pbip.py` confere o projeto em si: que `powerbi/` é exatamente o que o gerador produz, que o modelo lido pela biblioteca do Power BI tem as consultas, as medidas e as relações do pacote, e que cada visual usa campos que existem no modelo. A aparência dos visuais na tela ainda não foi conferida: fica para quando o projeto for aberto para exportar o PDF.
+`tests/test_pbip.py` confere o projeto em si: que `powerbi/` é exatamente o que o gerador produz, que o modelo lido pela biblioteca do Power BI tem as consultas, as medidas e as relações do pacote, e que cada visual usa campos que existem no modelo. A aparência foi conferida abrindo o projeto no Power BI Desktop. O que essa conferência achou e corrigiu está em [docs/DECISOES.md](docs/DECISOES.md).
 
 ## Estrutura
 
@@ -224,6 +228,7 @@ scripts/gerar_dados.py      gera as duas planilhas
 scripts/limpar_dados.py     limpa as planilhas e grava a versão limpa
 scripts/gerar_gabarito.py   monta o banco e grava o gabarito
 scripts/montar_pbip.py      gera o projeto do Power BI a partir do pacote
+scripts/imagens_do_pdf.py   gera as imagens das páginas a partir do PDF do painel
 data/entrada/               as planilhas geradas
 data/limpa/                 a versão limpa, em CSV
 sql/01_tabelas.sql          as tabelas, com as regras que os dados precisam seguir
@@ -239,4 +244,5 @@ docs/COMO-FUNCIONA.md       o projeto explicado sem jargão
 docs/DECISOES.md            as escolhas feitas e o porquê
 docs/MODELO.md              o modelo de dados do painel
 docs/MONTAGEM.md            o passo a passo para montar o painel
+docs/painel/                o PDF exportado do Power BI e uma imagem de cada página
 ```

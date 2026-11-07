@@ -351,15 +351,17 @@ Para mudar a data de referência ou as janelas, edite a aba `Alertas` de `parame
 1. **Arquivo > Salvar como**. Se a lista de tipos tiver **Arquivos de projeto do Power BI (\*.pbip)**, prefira esse formato e salve numa pasta `powerbi/` do repositório. Se não tiver, salve como `.pbix`.
    *Por quê:* o PBIP guarda o relatório e o modelo em arquivos de texto, que o git compara linha a linha; o `.pbix` é um arquivo fechado. O Power BI cria sozinho um `.gitignore` dentro da pasta do projeto, para o cache e as configurações locais não irem para o repositório.
 2. Antes de pôr o PBIP no git, confira o caminho gravado no parâmetro `PastaEntrada`: ele vai junto. Um caminho como `D:\Repos\...` não diz nada; um que passa pela pasta `Users` do Windows mostra o nome do usuário do computador.
-3. **Arquivo > Exportar > Exportar para PDF** gera um PDF com as quatro páginas.
-4. Para as imagens, abra cada página e capture com a Ferramenta de Captura do Windows (**Windows+Shift+S**).
+3. **Arquivo > Exportar > Exportar em PDF** gera um PDF com as quatro páginas. O Power BI grava o PDF numa pasta temporária e o abre; salve uma cópia em `docs/painel/painel.pdf`.
+   *Atenção:* a matriz e a agenda têm barra de rolagem, e o PDF mostra só as linhas que cabem na página.
+4. Para as imagens, rode `python scripts/imagens_do_pdf.py`. Ele grava em `docs/painel/` uma imagem PNG de cada página do PDF.
+   *Por quê:* a imagem que sai do PDF tem sempre o mesmo tamanho e não leva pedaços da tela, como a barra de tarefas ou outra janela aberta. E dá para refazer com um comando.
 
 ## 13. Se algo der errado
 
 | O que aparece | O que costuma ser |
 |---|---|
 | "A importação X não corresponde a nenhuma exportação" ou "O nome X não foi reconhecido" | a consulta X não existe ou foi renomeada com outra grafia |
-| "Arquivo não encontrado: Não achei controle_largo.xlsx na pasta..." | `PastaEntrada` aponta para a pasta errada |
+| "Arquivo não encontrado: Não consegui ler controle_largo.xlsx na pasta..." | `PastaEntrada` aponta para a pasta errada, ou o arquivo não está nela |
 | "Matrícula inválida" com o número da linha | a planilha tem uma matrícula que não é número; a carga para de propósito, porque sem matrícula não dá para saber de quem é a linha |
 | "não é SIM, NÃO nem CONDICIONAL" | uma célula da aba `Regra_Funcao_Treinamento` tem outro valor |
 | Uma tabela com o número de linhas errado no passo 3.5 | compare a consulta com o arquivo `.m`; uma etapa pode ter ficado de fora ao colar |
