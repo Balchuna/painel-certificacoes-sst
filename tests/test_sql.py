@@ -1,4 +1,4 @@
-"""As tabelas e as views do SQL de referência, com dados montados à mão.
+"""As tabelas, as views e as consultas do SQL de referência, com dados montados à mão.
 
 Cada teste monta um banco pequeno em memória com o caso que quer provar.
 """
@@ -258,3 +258,53 @@ def test_valores_fora_do_formato_sao_recusados(tabela, colunas, valores):
 def test_janelas_precisam_crescer():
     with pytest.raises(sqlite3.IntegrityError):
         montar_banco(janelas=(60, 30, 90))
+
+
+def consultar(banco, consulta):
+    banco.row_factory = sqlite3.Row
+    texto = (SQL / "consultas" / f"{consulta}.sql").read_text(encoding="utf-8")
+    return [dict(linha) for linha in banco.execute(texto)]
+
+
+def montar_vencimentos():
+    """Um item vencendo em cada fronteira das janelas e da agenda."""
+    banco = montar_banco()
+    casos = [
+        (1, "A12", 0),    # vence na data de referência: ainda não venceu
+        (2, "C12", 45),   # condicional com data entra na conta
+        (3, "N12", 10),   # não se aplica: fica fora mesmo com data
+        (4, "A12", 91),   # depois da última janela
+        (5, "A12", -1),   # já venceu: é pendência, não aviso
+    ]
+    for matricula, treinamento, dias in casos:
+        contratar(banco, matricula)
+        emitir(banco, matricula, treinamento, emissao_que_vence_em(dias))
+    return banco
+
+
+def test_janelas_contam_do_dia_zero_e_ignoram_o_que_nao_se_aplica():
+    assert consultar(montar_vencimentos(), "03_vencimentos_30_60_90") == [
+        {"janela_dias": 30, "itens": 1, "itens_obrigatorios": 1, "funcionarios": 1},
+        {"janela_dias": 60, "itens": 2, "itens_obrigatorios": 1, "funcionarios": 2},
+        {"janela_dias": 90, "itens": 2, "itens_obrigatorios": 1, "funcionarios": 2},
+    ]
+
+
+def test_janelas_sem_nenhum_item_dao_zero():
+    banco = montar_banco()
+    contratar(banco, 1)
+    assert [
+        (linha["janela_dias"], linha["itens"], linha["itens_obrigatorios"], linha["funcionarios"])
+        for linha in consultar(banco, "03_vencimentos_30_60_90")
+    ] == [(30, 0, 0, 0), (60, 0, 0, 0), (90, 0, 0, 0)]
+
+
+def test_agenda_vai_do_dia_zero_ate_a_ultima_janela():
+    agenda = consultar(montar_vencimentos(), "04_agenda_reciclagem")
+    assert [
+        (linha["matricula"], linha["treinamento"], linha["dias_para_vencer"], linha["regra"], linha["status"])
+        for linha in agenda
+    ] == [
+        (1, "A12", 0, "SIM", "Vence em até 30 dias"),
+        (2, "C12", 45, "CONDICIONAL", "Vence em 31 a 60 dias"),
+    ]
