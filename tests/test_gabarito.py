@@ -146,4 +146,6 @@ def test_csv_que_quebra_uma_regra_para_a_carga(tmp_path):
     assert resultado.returncode != 0
     assert "fato_certificacao.csv" in resultado.stderr
     assert "Traceback" not in resultado.stderr
+    # Nem gabarito nem banco pela metade com cara de pronto.
     assert not (tmp_path / "gabarito").exists()
+    assert not (tmp_path / "painel.sqlite").exists()
