@@ -1,4 +1,4 @@
-"""O pacote do Power BI, rodado dentro do Excel.
+"""O pacote do Power BI, rodado dentro do Excel e dentro do Power BI Desktop.
 
 O Power Query de powerquery/ tem de chegar à mesma versão limpa da limpeza em
 Python, e as medidas de dax/medidas.dax, ao mesmo gabarito do SQL, item por item.
@@ -6,10 +6,14 @@ Roda em dois cenários: a entrada versionada e uma entrada variada (outra sement
 outra data de referência, outras janelas, células feitas para pegar as bordas
 da limpeza e itens vencendo em cada fronteira das janelas).
 
-Precisa de Windows com Excel e pywin32; sem eles, os testes são pulados. Leva
-uns 20 minutos: o Excel monta o modelo uma vez por cenário, e cada consulta
-DAX custa uns 13 segundos de ida e volta. Para deixar de fora:
-python -m pytest -m "not excel".
+Os mesmos testes rodam em dois motores:
+- excel: o Excel monta o pacote por automação (modelo_excel.py). Precisa de Windows
+  com Excel e pywin32. Leva uns 20 minutos, porque cada consulta DAX custa uns
+  13 segundos de ida e volta. Para deixar de fora: python -m pytest -m "not excel".
+- desktop: o Power BI Desktop abre o projeto gerado por scripts/montar_pbip.py e
+  atualiza (modelo_powerbi.py). Abre uma janela na tela, por isso só roda com
+  python -m pytest --desktop. Leva uns 2 minutos.
+Sem o programa de um motor, os testes daquele motor são pulados.
 """
 from __future__ import annotations
 
@@ -41,12 +45,7 @@ from apoio import (
     somar_meses,
 )
 from modelo_excel import ModeloExcel, data_excel, excel_instalado, relacionamentos
-
-pytest.importorskip("win32com.client", reason="precisa do pywin32")
-if not excel_instalado():
-    pytest.skip("precisa do Excel instalado", allow_module_level=True)
-
-pytestmark = pytest.mark.excel
+from modelo_powerbi import ModeloPowerBI, desktop_instalado
 
 TABELAS_LIMPAS = [
     "dim_funcionario",
@@ -74,7 +73,7 @@ class Cenario:
     limpa: Path
     gabarito: Path
     banco: sqlite3.Connection
-    modelo: ModeloExcel
+    modelo: ModeloExcel | ModeloPowerBI
 
     def sql(self, consulta: str) -> list[dict]:
         return [dict(linha) for linha in self.banco.execute(consulta)]
@@ -174,10 +173,27 @@ def montar_variado(entrada: Path) -> None:
     livro.save(entrada / PARAMETROS)
 
 
-@pytest.fixture(scope="module", params=["padrao", "variado"])
+def abrir_modelo(motor: str, entrada: Path, pasta: Path) -> ModeloExcel | ModeloPowerBI:
+    if motor == "excel":
+        pytest.importorskip("win32com.client", reason="precisa do pywin32")
+        if not excel_instalado():
+            pytest.skip("precisa do Excel instalado")
+        return ModeloExcel(entrada)
+    if not desktop_instalado():
+        pytest.skip("precisa do Power BI Desktop instalado")
+    return ModeloPowerBI(entrada, pasta / "desktop")
+
+
+@pytest.fixture(scope="module", params=[
+    pytest.param(("padrao", "excel"), id="padrao-excel", marks=pytest.mark.excel),
+    pytest.param(("variado", "excel"), id="variado-excel", marks=pytest.mark.excel),
+    pytest.param(("padrao", "desktop"), id="padrao-desktop", marks=pytest.mark.desktop),
+    pytest.param(("variado", "desktop"), id="variado-desktop", marks=pytest.mark.desktop),
+])
 def cenario(request, tmp_path_factory):
-    pasta = tmp_path_factory.mktemp(request.param)
-    if request.param == "padrao":
+    nome, motor = request.param
+    pasta = tmp_path_factory.mktemp(f"{nome}-{motor}")
+    if nome == "padrao":
         entrada, limpa = ENTRADA_VERSIONADA, LIMPA_VERSIONADA
     else:
         entrada, limpa = pasta / "entrada", pasta / "limpa"
@@ -187,9 +203,13 @@ def cenario(request, tmp_path_factory):
              "--gabarito", pasta / "gabarito")
     banco = sqlite3.connect(pasta / "painel.sqlite")
     banco.row_factory = sqlite3.Row
-    modelo = ModeloExcel(entrada)
     try:
-        yield Cenario(request.param, limpa, pasta / "gabarito", banco, modelo)
+        modelo = abrir_modelo(motor, entrada, pasta)
+    except BaseException:
+        banco.close()
+        raise
+    try:
+        yield Cenario(nome, limpa, pasta / "gabarito", banco, modelo)
     finally:
         modelo.fechar()
         banco.close()
@@ -300,9 +320,9 @@ def test_calendario_sem_buracos_cobre_todas_as_datas(cenario):
 
 
 def test_relacionamentos_de_modelo_md_estao_ativos(cenario):
-    ligacoes = cenario.modelo.livro.Model.ModelRelationships
-    assert ligacoes.Count == len(relacionamentos()) > 0
-    assert all(ligacoes.Item(i).Active for i in range(1, ligacoes.Count + 1))
+    ligacoes = cenario.modelo.ligacoes()
+    assert sorted((muitos, um) for muitos, um, _ in ligacoes) == sorted(relacionamentos())
+    assert len(ligacoes) > 0 and all(ativa for _, _, ativa in ligacoes)
 
 
 # --- Medidas DAX contra o gabarito do SQL ----------------------------------------

@@ -147,6 +147,15 @@ class ModeloExcel:
     def tabelas(self) -> list[str]:
         return [tabela.Name for tabela in self.livro.Model.ModelTables]
 
+    def ligacoes(self) -> list[tuple[tuple[str, str], tuple[str, str], bool]]:
+        """[((tabela, coluna) do lado muitos, (tabela, coluna) do lado um, ativa?)]."""
+        todas = self.livro.Model.ModelRelationships
+        return [
+            ((r.ForeignKeyTable.Name, r.ForeignKeyColumn.Name), (r.PrimaryKeyTable.Name, r.PrimaryKeyColumn.Name),
+             bool(r.Active))
+            for r in (todas.Item(i) for i in range(1, todas.Count + 1))
+        ]
+
     def consultar(self, dax: str) -> list[dict]:
         """Roda uma consulta DAX e devolve as linhas como dicionários."""
         objeto = self._tabela.TableObject
