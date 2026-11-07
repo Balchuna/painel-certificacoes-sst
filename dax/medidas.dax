@@ -1,0 +1,297 @@
+// Medidas do painel de certificações SST.
+//
+// Este arquivo é uma consulta DAX inteira: o bloco DEFINE cria as medidas e o EVALUATE do fim
+// mostra os números da visão geral, para conferir com sql/gabarito/01_visao_geral.csv.
+// No Power BI Desktop, cole tudo na exibição de consulta DAX e rode; depois adicione as medidas ao
+// modelo (o passo a passo está em docs/MONTAGEM.md). Todas ficam na tabela Medidas.
+//
+// Regras que valem para todas:
+//   - só contam funcionários ativos (dim_funcionario[situacao] = "Ativo");
+//   - de cada funcionário em cada treinamento, só conta a emissão vigente (a mais recente);
+//   - a data de referência e as janelas vêm da tabela parametro, nunca de um número escrito aqui.
+//     Os nomes "30, 60 e 90 dias" são os do spec; os dias de verdade são janela_1, janela_2 e janela_3;
+//   - vencer na própria data de referência ainda vale (vence hoje, não venceu), como no SQL.
+// Onde caberia SELECTEDVALUE ( coluna ), está IF ( HASONEVALUE ( coluna ), VALUES ( coluna ) ).
+// É a mesma conta; o modelo de dados do Excel, que o teste usa, não conhece SELECTEDVALUE.
+// Os resultados são conferidos contra o gabarito do SQL por tests/test_powerbi.py.
+
+DEFINE
+
+// ---------------------------------------------------------------------------------------------
+// Parâmetros
+
+MEASURE Medidas[Data de Referência] =
+    MAX ( parametro[data_referencia] )
+
+// ---------------------------------------------------------------------------------------------
+// Quantos itens deveriam estar em dia
+
+MEASURE Medidas[Funcionários Ativos] =
+    CALCULATE ( COUNTROWS ( dim_funcionario ), KEEPFILTERS ( dim_funcionario[situacao] = "Ativo" ) )
+
+// Cada funcionário ativo vezes cada treinamento que a função dele exige (regra SIM).
+// Conta também o que nunca foi feito, que não tem linha em fato_certificacao: por isso a conta
+// passa pela tabela de regras, função a função, e não pela fato.
+MEASURE Medidas[Itens Obrigatórios] =
+    SUMX (
+        VALUES ( dim_funcao[funcao] ),
+        CALCULATE ( [Funcionários Ativos] )
+            * CALCULATE (
+                COUNTROWS ( regra_funcao_treinamento ),
+                KEEPFILTERS ( regra_funcao_treinamento[regra] = "SIM" )
+            )
+    )
+
+// Itens obrigatórios que têm pelo menos uma emissão (vencida ou não).
+MEASURE Medidas[Obrigatórios com Registro] =
+    CALCULATE (
+        COUNTROWS ( fato_certificacao ),
+        KEEPFILTERS ( fato_certificacao[vigente] = TRUE () ),
+        KEEPFILTERS ( fato_certificacao[regra] = "SIM" ),
+        KEEPFILTERS ( dim_funcionario[situacao] = "Ativo" )
+    )
+
+// ---------------------------------------------------------------------------------------------
+// Vencimentos (SIM e CONDICIONAL; NÃO fica de fora porque não se aplica à função)
+
+// Itens com emissão vigente e data de vencimento. Treinamento que não vence fica de fora.
+MEASURE Medidas[Itens com Vencimento] =
+    CALCULATE (
+        COUNTROWS ( fato_certificacao ),
+        KEEPFILTERS ( fato_certificacao[vigente] = TRUE () ),
+        KEEPFILTERS ( fato_certificacao[regra] IN { "SIM", "CONDICIONAL" } ),
+        KEEPFILTERS ( NOT ISBLANK ( fato_certificacao[data_vencimento] ) ),
+        KEEPFILTERS ( dim_funcionario[situacao] = "Ativo" )
+    )
+
+// Venceu antes da data de referência.
+MEASURE Medidas[Vencidos] =
+    VAR Referencia = [Data de Referência]
+    RETURN
+        CALCULATE (
+            [Itens com Vencimento],
+            KEEPFILTERS ( fato_certificacao[data_vencimento] < Referencia )
+        )
+
+MEASURE Medidas[Obrigatórios Vencidos] =
+    CALCULATE ( [Vencidos], KEEPFILTERS ( fato_certificacao[regra] = "SIM" ) )
+
+// As janelas são cumulativas: "60 dias" inclui os de 30. Contam do dia 0 (vence na data de
+// referência) até o último dia da janela.
+MEASURE Medidas[Vencem em 30 dias] =
+    VAR Referencia = [Data de Referência]
+    VAR Limite = Referencia + MAX ( parametro[janela_1] )
+    RETURN
+        CALCULATE (
+            [Itens com Vencimento],
+            KEEPFILTERS (
+                fato_certificacao[data_vencimento] >= Referencia
+                    && fato_certificacao[data_vencimento] <= Limite
+            )
+        )
+
+MEASURE Medidas[Vencem em 60 dias] =
+    VAR Referencia = [Data de Referência]
+    VAR Limite = Referencia + MAX ( parametro[janela_2] )
+    RETURN
+        CALCULATE (
+            [Itens com Vencimento],
+            KEEPFILTERS (
+                fato_certificacao[data_vencimento] >= Referencia
+                    && fato_certificacao[data_vencimento] <= Limite
+            )
+        )
+
+MEASURE Medidas[Vencem em 90 dias] =
+    VAR Referencia = [Data de Referência]
+    VAR Limite = Referencia + MAX ( parametro[janela_3] )
+    RETURN
+        CALCULATE (
+            [Itens com Vencimento],
+            KEEPFILTERS (
+                fato_certificacao[data_vencimento] >= Referencia
+                    && fato_certificacao[data_vencimento] <= Limite
+            )
+        )
+
+// ---------------------------------------------------------------------------------------------
+// Conformidade
+
+// Obrigatório em dia: tem emissão e não venceu (inclui o que vence logo e o que não vence).
+MEASURE Medidas[Itens Válidos] =
+    [Obrigatórios com Registro] - [Obrigatórios Vencidos]
+
+// O que deixa alguém irregular: obrigatório sem registro ou vencido.
+MEASURE Medidas[Pendentes Obrigatórios] =
+    [Itens Obrigatórios] - [Itens Válidos]
+
+MEASURE Medidas[Obrigatórios Sem Registro] =
+    [Itens Obrigatórios] - [Obrigatórios com Registro]
+
+MEASURE Medidas[% Conformidade] =
+    DIVIDE ( [Itens Válidos], [Itens Obrigatórios] )
+
+MEASURE Medidas[% Pendência] =
+    DIVIDE ( [Pendentes Obrigatórios], [Itens Obrigatórios] )
+
+// Funcionários ativos com pelo menos uma pendência obrigatória.
+MEASURE Medidas[Funcionários Irregulares] =
+    COUNTROWS (
+        FILTER (
+            CALCULATETABLE (
+                VALUES ( dim_funcionario[matricula] ),
+                KEEPFILTERS ( dim_funcionario[situacao] = "Ativo" )
+            ),
+            [Pendentes Obrigatórios] > 0
+        )
+    )
+
+// ---------------------------------------------------------------------------------------------
+// Um item: um funcionário num treinamento (a célula da matriz farol e a linha da agenda)
+
+// Verdadeiro quando o contexto é exatamente um funcionário e um treinamento.
+MEASURE Medidas[Item Único] =
+    HASONEVALUE ( dim_funcionario[matricula] ) && HASONEVALUE ( dim_treinamento[codigo] )
+
+// A regra mora em regra_funcao_treinamento, que o filtro do funcionário não alcança (ele não sobe
+// para dim_funcao). Por isso a medida pega a função do funcionário e filtra a regra por ela.
+MEASURE Medidas[Regra do Item] =
+    IF (
+        [Item Único],
+        VAR Funcao =
+            IF ( HASONEVALUE ( dim_funcionario[funcao] ), VALUES ( dim_funcionario[funcao] ) )
+        RETURN
+            CALCULATE (
+                IF (
+                    HASONEVALUE ( regra_funcao_treinamento[regra] ),
+                    VALUES ( regra_funcao_treinamento[regra] )
+                ),
+                dim_funcao[funcao] = Funcao
+            )
+    )
+
+MEASURE Medidas[Emissão do Item] =
+    IF (
+        [Item Único],
+        CALCULATE ( MAX ( fato_certificacao[data_emissao] ), KEEPFILTERS ( fato_certificacao[vigente] = TRUE () ) )
+    )
+
+MEASURE Medidas[Vencimento do Item] =
+    IF (
+        [Item Único],
+        CALCULATE ( MAX ( fato_certificacao[data_vencimento] ), KEEPFILTERS ( fato_certificacao[vigente] = TRUE () ) )
+    )
+
+// Negativo: venceu há tantos dias. Vazio quando não há emissão ou o treinamento não vence.
+MEASURE Medidas[Dias para Vencer] =
+    VAR Vencimento = [Vencimento do Item]
+    RETURN
+        IF ( NOT ISBLANK ( Vencimento ), INT ( Vencimento - [Data de Referência] ) )
+
+// A situação do item como número, do mais grave para o menos grave. Ordena a legenda e as cores.
+//   1 Vencido                  4 Vence entre janela_1 + 1 e janela_2   7 Sem vencimento
+//   2 Sem registro (SIM)       5 Vence entre janela_2 + 1 e janela_3   8 Condicional sem registro
+//   3 Vence em até janela_1    6 Válido                                9 Não aplicável (NÃO)
+// Vazio para funcionário desligado: o painel só olha quem está ativo.
+MEASURE Medidas[Código Farol] =
+    VAR Situacao =
+        IF ( HASONEVALUE ( dim_funcionario[situacao] ), VALUES ( dim_funcionario[situacao] ) )
+    VAR Ativo = Situacao = "Ativo"
+    VAR Regra = [Regra do Item]
+    VAR Emissao = [Emissão do Item]
+    VAR Vencimento = [Vencimento do Item]
+    VAR Dias = [Dias para Vencer]
+    RETURN
+        IF (
+            [Item Único] && Ativo && NOT ISBLANK ( Regra ),
+            SWITCH (
+                TRUE (),
+                Regra = "NÃO", 9,
+                ISBLANK ( Emissao ) && Regra = "SIM", 2,
+                ISBLANK ( Emissao ), 8,
+                ISBLANK ( Vencimento ), 7,
+                Dias < 0, 1,
+                Dias <= MAX ( parametro[janela_1] ), 3,
+                Dias <= MAX ( parametro[janela_2] ), 4,
+                Dias <= MAX ( parametro[janela_3] ), 5,
+                6
+            )
+        )
+
+// O mesmo texto do SQL (vw_status_item), com os dias das janelas da tabela parametro.
+MEASURE Medidas[Status Farol] =
+    VAR J1 = MAX ( parametro[janela_1] )
+    VAR J2 = MAX ( parametro[janela_2] )
+    VAR J3 = MAX ( parametro[janela_3] )
+    RETURN
+        SWITCH (
+            [Código Farol],
+            1, "Vencido",
+            2, "Sem registro",
+            3, "Vence em até " & J1 & " dias",
+            4, "Vence em " & ( J1 + 1 ) & " a " & J2 & " dias",
+            5, "Vence em " & ( J2 + 1 ) & " a " & J3 & " dias",
+            6, "Válido",
+            7, "Sem vencimento",
+            8, "Condicional sem registro",
+            9, "Não aplicável"
+        )
+
+// Cor de fundo da célula da matriz (formatação condicional > cor da tela de fundo > valor do campo).
+// As mesmas cores estão no tema, em tema/tema.json.
+MEASURE Medidas[Cor Farol] =
+    SWITCH (
+        [Código Farol],
+        1, "#E06666",
+        2, "#C27BA0",
+        3, "#F6B26B",
+        4, "#FFD966",
+        5, "#FFF2CC",
+        6, "#93C47D",
+        7, "#B6D7A8",
+        8, "#D9D9D9",
+        9, "#F3F3F3"
+    )
+
+// O texto da célula da matriz: a data de vencimento quando há uma, senão uma palavra curta.
+MEASURE Medidas[Rótulo Farol] =
+    VAR Codigo = [Código Farol]
+    RETURN
+        SWITCH (
+            TRUE (),
+            ISBLANK ( Codigo ), BLANK (),
+            Codigo = 2, "falta",
+            Codigo = 7, "sem venc.",
+            Codigo = 8, "cond.",
+            Codigo = 9, "n/a",
+            FORMAT ( [Vencimento do Item], "dd/mm/yy" )
+        )
+
+// 1 quando o item vence entre a data de referência e o fim da maior janela: filtro da agenda.
+MEASURE Medidas[Na Agenda] =
+    IF ( [Código Farol] IN { 3, 4, 5 }, 1 )
+
+// ---------------------------------------------------------------------------------------------
+// Qualidade dos dados
+
+MEASURE Medidas[Linhas Rejeitadas] =
+    COUNTROWS ( qualidade_rejeicoes )
+
+// ---------------------------------------------------------------------------------------------
+// Conferência. Com a entrada versionada, tem de dar o mesmo que sql/gabarito/01_visao_geral.csv:
+// 01/11/2026, 138 ativos, 63 irregulares, 648 obrigatórios, 560 válidos, 86,4%, 88 pendentes,
+// 61 sem registro, 27 obrigatórios vencidos e 30 vencidos no total.
+
+EVALUATE
+ROW (
+    "Data de referência", [Data de Referência],
+    "Funcionários ativos", [Funcionários Ativos],
+    "Funcionários irregulares", [Funcionários Irregulares],
+    "Itens obrigatórios", [Itens Obrigatórios],
+    "Itens válidos", [Itens Válidos],
+    "% conformidade", [% Conformidade],
+    "Pendentes obrigatórios", [Pendentes Obrigatórios],
+    "Obrigatórios sem registro", [Obrigatórios Sem Registro],
+    "Obrigatórios vencidos", [Obrigatórios Vencidos],
+    "Vencidos", [Vencidos]
+)
