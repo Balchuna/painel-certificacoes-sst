@@ -109,13 +109,21 @@ expression Arquivos =
 expression fn_LerAba =
 		(arquivo as text, aba as text) as table =>
 		let
+		    // O Power Query só lê o arquivo quando precisa dele. O Binary.Buffer lê já, para que uma
+		    // pasta errada caia aqui, com a mensagem certa, e não mais adiante, parecendo outra coisa.
+		    Lido = try Binary.Buffer(Arquivos{[Name = arquivo]}[Content]),
 		    Conteudo =
-		        try Arquivos{[Name = arquivo]}[Content]
-		            otherwise error Error.Record("Arquivo não encontrado", "Não achei " & arquivo & " na pasta " & PastaEntrada),
+		        if Lido[HasError]
+		        then error Error.Record("Arquivo não encontrado",
+		            "Não consegui ler " & arquivo & " na pasta " & PastaEntrada & ". " & Lido[Error][Message])
+		        else Lido[Value],
 		    Pasta = Excel.Workbook(Conteudo, null, true),
+		    // Procura a aba sem try: um arquivo que não abre mostra o próprio erro, e não "não tem a aba".
+		    Abas = Table.SelectRows(Pasta, each [Item] = aba and [Kind] = "Sheet"),
 		    Dados =
-		        try Pasta{[Item = aba, Kind = "Sheet"]}[Data]
-		            otherwise error Error.Record("Aba não encontrada", arquivo & " não tem a aba " & aba),
+		        if Table.IsEmpty(Abas)
+		        then error Error.Record("Aba não encontrada", arquivo & " não tem a aba " & aba)
+		        else Abas{0}[Data],
 		    Colunas = Table.ColumnNames(Dados),
 		    // A primeira linha da aba é o cabeçalho. Coluna sem título fica com o nome que o Power Query deu.
 		    Titulos = List.Transform(Record.FieldValues(Dados{0}), fn_LimparTexto),

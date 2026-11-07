@@ -518,3 +518,32 @@ def test_vencimentos_por_mes(cenario):
 def test_linhas_rejeitadas(cenario):
     obtido = cenario.modelo.medir('EVALUATE ROW ( "linhas", [Linhas Rejeitadas] + 0 )')
     assert obtido[0]["linhas"] == len(ler_csv(cenario.limpa / "qualidade_rejeicoes.csv"))
+
+
+# --- Mensagens de erro -----------------------------------------------------------
+
+
+def textos_do_erro(valor) -> list[str]:
+    """Os textos de um erro. O do Excel vem em tuplas dentro de tuplas; o do Desktop, na saída de erro."""
+    if isinstance(valor, str):
+        return [valor]
+    if isinstance(valor, BaseException):
+        return textos_do_erro(valor.args) + textos_do_erro(getattr(valor, "stderr", None))
+    if isinstance(valor, tuple):
+        return [texto for parte in valor for texto in textos_do_erro(parte)]
+    return []
+
+
+@pytest.mark.parametrize("motor", [
+    pytest.param("excel", marks=pytest.mark.excel),
+    pytest.param("desktop", marks=pytest.mark.desktop),
+])
+def test_pasta_de_entrada_errada_aparece_na_mensagem(motor, tmp_path):
+    # Com PastaEntrada apontando para uma pasta que não existe, o Power BI dizia que a
+    # planilha "não tem a aba". A mensagem tem de falar da pasta, que é onde está o erro.
+    pasta = tmp_path / "pasta que não existe"
+    with pytest.raises(Exception) as erro:
+        abrir_modelo(motor, pasta, tmp_path).fechar()
+    texto = " ".join(textos_do_erro(erro.value))
+    assert "não tem a aba" not in texto
+    assert str(pasta) in texto
