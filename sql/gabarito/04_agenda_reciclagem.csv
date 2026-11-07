@@ -1,0 +1,51 @@
+data_vencimento,dias_para_vencer,matricula,nome,funcao,equipe,treinamento,regra,status
+2026-11-10,9,7061,Cláudio Matos Xavier,AJ. DE MONTADOR DE STEEL FRAME,Equipe Alfa,PEMT2,CONDICIONAL,Vence em até 30 dias
+2026-11-10,9,7076,Vinícius Araújo Paiva,MONTADOR DE STEEL FRAME,Equipe Gama,ASO,SIM,Vence em até 30 dias
+2026-11-13,12,7038,Ubirajara Campos Esteves,MONTADOR DE GESSO,Equipe Alfa,ASO,SIM,Vence em até 30 dias
+2026-11-14,13,7068,Tânia Brandão Guimarães,MONTADOR DE STEEL FRAME,Equipe Gama,NR18,SIM,Vence em até 30 dias
+2026-11-15,14,7070,Heitor Campos Xavier,MONTADOR DE STEEL FRAME,Equipe Alfa,NR35,SIM,Vence em até 30 dias
+2026-11-16,15,7042,Renato Correia Farias,MONTADOR DE GESSO,Equipe Gama,ASO,SIM,Vence em até 30 dias
+2026-11-16,15,7077,Sérgio Sales Amaral,MONTADOR DE STEEL FRAME,Equipe Gama,ASO,SIM,Vence em até 30 dias
+2026-11-18,17,7002,Edson Valente Farias,AJ. DE MONTADOR DE STEEL FRAME,Equipe Alfa,ASO,SIM,Vence em até 30 dias
+2026-11-21,20,7050,Heitor Araújo Dantas,AJ. DE MONTADOR DE STEEL FRAME,Equipe Alfa,ASO,SIM,Vence em até 30 dias
+2026-11-21,20,7116,Tânia Correia Fontes,AJ. DE MONTADOR DE STEEL FRAME,Equipe Beta,ASO,SIM,Vence em até 30 dias
+2026-11-23,22,7074,Jéssica Tavares Queiroz,MONTADOR DE STEEL FRAME,Equipe Gama,ASO,SIM,Vence em até 30 dias
+2026-11-24,23,7037,Natália Fontes Simões,MONTADOR DE STEEL FRAME,Equipe Alfa,ASO,SIM,Vence em até 30 dias
+2026-11-24,23,7117,Tânia Brandão Nogueira,AJ. DE MONTADOR DE STEEL FRAME,Equipe Gama,ASO,SIM,Vence em até 30 dias
+2026-11-25,24,7118,Fábio Bastos Aguiar,AJ. DE MONTADOR DE STEEL FRAME,Equipe Beta,ASO,SIM,Vence em até 30 dias
+2026-11-26,25,7069,Sérgio Abreu Leal,ENCARREGADO DE OBRAS,Equipe Gama,NR35,CONDICIONAL,Vence em até 30 dias
+2026-11-30,29,7073,Alessandra Magalhães Vidal,MONTADOR DE STEEL FRAME,Equipe Gama,NR18,SIM,Vence em até 30 dias
+2026-11-30,29,7119,Camila Correia Teixeira,MONTADOR DE STEEL FRAME,Equipe Alfa,ASO,SIM,Vence em até 30 dias
+2026-12-01,30,7074,Jéssica Tavares Queiroz,MONTADOR DE STEEL FRAME,Equipe Gama,NR18,SIM,Vence em até 30 dias
+2026-12-03,32,7003,Inês Rezende Meireles,AJ. DE MONTADOR DE STEEL FRAME,Equipe Beta,ASO,SIM,Vence em 31 a 60 dias
+2026-12-03,32,7075,Elaine Queiroz Falcão,AJ. DE MONTADOR DE STEEL FRAME,Equipe Alfa,NR18,SIM,Vence em 31 a 60 dias
+2026-12-04,33,7039,Nelson Dantas Pacheco,MONTADOR DE STEEL FRAME,Equipe Alfa,ASO,SIM,Vence em 31 a 60 dias
+2026-12-06,35,7079,Renato Amaral Simões,MONTADOR DE STEEL FRAME,Equipe Gama,ASO,SIM,Vence em 31 a 60 dias
+2026-12-09,38,7044,Vinícius Brandão Campos,AJ. DE MONTADOR DE STEEL FRAME,Equipe Gama,ASO,SIM,Vence em 31 a 60 dias
+2026-12-10,39,7120,Júlio Duarte Queiroz,MONTADOR DE GESSO,Equipe Beta,ASO,SIM,Vence em 31 a 60 dias
+2026-12-12,41,7121,Jéssica Guimarães Xavier,AJ. DE MONTADOR DE STEEL FRAME,Equipe Alfa,ASO,SIM,Vence em 31 a 60 dias
+2026-12-14,43,7078,Heitor Leal Caldeira,MONTADOR DE GESSO,Equipe Gama,ASO,SIM,Vence em 31 a 60 dias
+2026-12-17,46,7076,Vinícius Araújo Paiva,MONTADOR DE STEEL FRAME,Equipe Gama,NR18,SIM,Vence em 31 a 60 dias
+2026-12-20,49,7005,Jéssica Meireles Santana,MONTADOR DE STEEL FRAME,Equipe Beta,ASO,SIM,Vence em 31 a 60 dias
+2026-12-23,52,7074,Jéssica Tavares Queiroz,MONTADOR DE STEEL FRAME,Equipe Gama,NR35,SIM,Vence em 31 a 60 dias
+2026-12-23,52,7076,Vinícius Araújo Paiva,MONTADOR DE STEEL FRAME,Equipe Gama,NR35,SIM,Vence em 31 a 60 dias
+2026-12-25,54,7002,Edson Valente Farias,AJ. DE MONTADOR DE STEEL FRAME,Equipe Alfa,NR35,SIM,Vence em 31 a 60 dias
+2026-12-26,55,7075,Elaine Queiroz Falcão,AJ. DE MONTADOR DE STEEL FRAME,Equipe Alfa,NR35,SIM,Vence em 31 a 60 dias
+2026-12-27,56,7007,Vinícius Paiva Duarte,MONTADOR DE STEEL FRAME,Equipe Beta,ASO,SIM,Vence em 31 a 60 dias
+2026-12-29,58,7077,Sérgio Sales Amaral,MONTADOR DE STEEL FRAME,Equipe Gama,NR18,SIM,Vence em 31 a 60 dias
+2027-01-02,62,7001,Patrícia Esteves Galvão,MONTADOR DE GESSO,Equipe Beta,NR18,SIM,Vence em 61 a 90 dias
+2027-01-02,62,7122,Nelson Araújo Vidal,MONTADOR DE GESSO,Equipe Beta,ASO,SIM,Vence em 61 a 90 dias
+2027-01-03,63,7077,Sérgio Sales Amaral,MONTADOR DE STEEL FRAME,Equipe Gama,NR35,SIM,Vence em 61 a 90 dias
+2027-01-11,71,7002,Edson Valente Farias,AJ. DE MONTADOR DE STEEL FRAME,Equipe Alfa,NR18,SIM,Vence em 61 a 90 dias
+2027-01-13,73,7003,Inês Rezende Meireles,AJ. DE MONTADOR DE STEEL FRAME,Equipe Beta,NR35,SIM,Vence em 61 a 90 dias
+2027-01-15,75,7078,Heitor Leal Caldeira,MONTADOR DE GESSO,Equipe Gama,NR18,SIM,Vence em 61 a 90 dias
+2027-01-17,77,7040,Leandro Galvão Dantas,MONTADOR DE STEEL FRAME,Equipe Alfa,ASO,SIM,Vence em 61 a 90 dias
+2027-01-19,79,7123,Ivan Farias Paiva,MONTADOR DE STEEL FRAME,Equipe Gama,ASO,SIM,Vence em 61 a 90 dias
+2027-01-20,80,7079,Renato Amaral Simões,MONTADOR DE STEEL FRAME,Equipe Gama,NR18,SIM,Vence em 61 a 90 dias
+2027-01-21,81,7049,Quitéria Farias Abreu,AJ. DE MONTADOR DE STEEL FRAME,Equipe Beta,ASO,SIM,Vence em 61 a 90 dias
+2027-01-23,83,7001,Patrícia Esteves Galvão,MONTADOR DE GESSO,Equipe Beta,PEMT2,CONDICIONAL,Vence em 61 a 90 dias
+2027-01-24,84,7005,Jéssica Meireles Santana,MONTADOR DE STEEL FRAME,Equipe Beta,NR18,SIM,Vence em 61 a 90 dias
+2027-01-24,84,7062,Daniela Vidal Pacheco,MONTADOR DE GESSO,Equipe Beta,NR35,CONDICIONAL,Vence em 61 a 90 dias
+2027-01-24,84,7079,Renato Amaral Simões,MONTADOR DE STEEL FRAME,Equipe Gama,NR35,SIM,Vence em 61 a 90 dias
+2027-01-25,85,7124,Raquel Pacheco Santana,TEC. DE SEGURANÇA DO TRABALHO,Equipe Beta,ASO,SIM,Vence em 61 a 90 dias
+2027-01-29,89,7005,Jéssica Meireles Santana,MONTADOR DE STEEL FRAME,Equipe Beta,NR35,SIM,Vence em 61 a 90 dias

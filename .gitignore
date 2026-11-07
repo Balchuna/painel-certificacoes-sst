@@ -10,3 +10,6 @@ venv/
 
 # Excel abre um arquivo temporário ao lado da planilha
 ~$*
+
+# Banco montado por scripts/gerar_gabarito.py; sai de novo a cada execução.
+*.sqlite

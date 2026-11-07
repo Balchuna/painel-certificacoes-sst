@@ -1,0 +1,64 @@
+matricula,nome,funcao,equipe,pendencias,sem_registro,vencidos,treinamentos
+7052,Antônia Caldeira Correia,AJ. DE MONTADOR DE STEEL FRAME,Equipe Beta,4,3,1,"ASO, NR06, NR18, NR35"
+7044,Vinícius Brandão Campos,AJ. DE MONTADOR DE STEEL FRAME,Equipe Gama,3,2,1,"NR01, NR18, NR35"
+7060,Adriano Farias Xavier,MONTADOR DE STEEL FRAME,Equipe Gama,3,2,1,"ASO, NR18, NR35"
+7103,Tânia Leal Abreu,AJ. DE MONTADOR DE STEEL FRAME,Equipe Gama,3,3,0,"NR01, NR18, NR35"
+7145,Tânia Esteves Correia,AJ. DE MONTADOR DE STEEL FRAME,Equipe Gama,3,3,0,"NR06, NR18, NR35"
+7006,Jéssica Esteves Aguiar,AJ. DE MONTADOR DE STEEL FRAME,Equipe Gama,2,1,1,"ASO, NR06"
+7012,Amanda Santana Queiroz,AJ. DE MONTADOR DE STEEL FRAME,Equipe Gama,2,2,0,"NR01, NR35"
+7017,Helena Teixeira Abreu,MONTADOR DE STEEL FRAME,Equipe Gama,2,1,1,"ASO, NR35"
+7028,Jéssica Moura Abreu,MONTADOR DE STEEL FRAME,Equipe Beta,2,1,1,"NR06, NR35"
+7031,Nelson Duarte Farias,MONTADOR DE GESSO,Equipe Gama,2,2,0,"ASO, NR06"
+7041,Nelson Galvão Paiva,AJ. DE MONTADOR DE STEEL FRAME,Equipe Gama,2,2,0,"ASO, NR06"
+7048,Bruna Nogueira Correia,MONTADOR DE STEEL FRAME,Equipe Beta,2,2,0,"ASO, NR06"
+7051,Débora Leal Nogueira,AJ. DE MONTADOR DE STEEL FRAME,Equipe Gama,2,2,0,"ASO, NR35"
+7055,Gabriela Amaral Dantas,MONTADOR DE STEEL FRAME,Equipe Gama,2,0,2,"NR18, NR35"
+7056,Sandra Galvão Nogueira,MONTADOR DE STEEL FRAME,Equipe Beta,2,0,2,"ASO, NR35"
+7106,Leandro Nogueira Paiva,MONTADOR DE GESSO,Equipe Gama,2,1,1,"ASO, NR06"
+7113,Renato Leal Duarte,MONTADOR DE STEEL FRAME,Equipe Beta,2,2,0,"NR01, NR35"
+7126,Otávio Fontes Magalhães,AJ. DE MONTADOR DE STEEL FRAME,Equipe Gama,2,2,0,"NR01, NR35"
+7130,Elaine Fontes Santana,AJ. DE MONTADOR DE STEEL FRAME,Equipe Beta,2,2,0,"ASO, NR35"
+7001,Patrícia Esteves Galvão,MONTADOR DE GESSO,Equipe Beta,1,0,1,ASO
+7011,Caio Xavier Campos,MONTADOR DE STEEL FRAME,Equipe Beta,1,0,1,ASO
+7013,Nelson Caldeira Esteves,AJ. DE MONTADOR DE STEEL FRAME,Equipe Alfa,1,1,0,NR35
+7014,Alessandra Matos Teixeira,MONTADOR DE GESSO,Equipe Gama,1,1,0,NR18
+7015,Alessandra Conceição Assunção,AJ. DE MONTADOR DE STEEL FRAME,Equipe Alfa,1,0,1,ASO
+7019,Valéria Nogueira Galvão,MONTADOR DE STEEL FRAME,Equipe Alfa,1,0,1,NR18
+7022,Alessandra Falcão Caldeira,MONTADOR DE GESSO,Equipe Beta,1,0,1,NR18
+7024,Leandro Bastos Esteves,MONTADOR DE GESSO,Equipe Gama,1,1,0,NR06
+7025,Otávio Vidal Nogueira,MONTADOR DE STEEL FRAME,Equipe Alfa,1,0,1,ASO
+7027,Quitéria Caldeira Amaral,AJ. DE MONTADOR DE STEEL FRAME,Equipe Alfa,1,0,1,ASO
+7029,Antônia Araújo Henriques,MONTADOR DE STEEL FRAME,Equipe Alfa,1,0,1,ASO
+7034,Leandro Falcão Tavares,MONTADOR DE STEEL FRAME,Equipe Beta,1,0,1,NR18
+7035,Sérgio Esteves Amaral,MONTADOR DE STEEL FRAME,Equipe Alfa,1,1,0,NR01
+7046,Caio Brandão Falcão,MONTADOR DE GESSO,Equipe Alfa,1,0,1,ASO
+7050,Heitor Araújo Dantas,AJ. DE MONTADOR DE STEEL FRAME,Equipe Alfa,1,1,0,NR35
+7061,Cláudio Matos Xavier,AJ. DE MONTADOR DE STEEL FRAME,Equipe Alfa,1,1,0,NR18
+7062,Daniela Vidal Pacheco,MONTADOR DE GESSO,Equipe Beta,1,1,0,NR18
+7063,Alessandra Leal Nogueira,MONTADOR DE STEEL FRAME,Equipe Alfa,1,1,0,NR06
+7065,Quitéria Assunção Nogueira,MONTADOR DE STEEL FRAME,Equipe Gama,1,0,1,NR35
+7066,Amanda Caldeira Farias,AJ. DE MONTADOR DE STEEL FRAME,Equipe Alfa,1,0,1,NR35
+7067,Júlio Henriques Teixeira,AJ. DE MONTADOR DE STEEL FRAME,Equipe Beta,1,1,0,NR18
+7069,Sérgio Abreu Leal,ENCARREGADO DE OBRAS,Equipe Gama,1,0,1,ASO
+7073,Alessandra Magalhães Vidal,MONTADOR DE STEEL FRAME,Equipe Gama,1,1,0,NR35
+7077,Sérgio Sales Amaral,MONTADOR DE STEEL FRAME,Equipe Gama,1,1,0,NR01
+7080,Inês Brandão Nogueira,MONTADOR DE GESSO,Equipe Gama,1,0,1,ASO
+7081,Adriano Vidal Meireles,AJ. DE MONTADOR DE STEEL FRAME,Equipe Alfa,1,1,0,NR18
+7082,Elaine Rezende Tavares,MONTADOR DE GESSO,Equipe Beta,1,0,1,ASO
+7089,Natália Matos Esteves,TEC. DE SEGURANÇA DO TRABALHO,Equipe Alfa,1,1,0,NR18
+7095,Helena Falcão Araújo,MONTADOR DE STEEL FRAME,Equipe Gama,1,1,0,NR18
+7096,Márcio Amaral Henriques,AJ. DE MONTADOR DE STEEL FRAME,Equipe Gama,1,1,0,NR01
+7097,Lúcia Rezende Simões,MONTADOR DE GESSO,Equipe Beta,1,1,0,NR18
+7099,Ubirajara Macedo Fontes,MONTADOR DE STEEL FRAME,Equipe Beta,1,1,0,NR35
+7107,Alessandra Assunção Rezende,MONTADOR DE GESSO,Equipe Gama,1,1,0,NR18
+7109,Amanda Farias Rezende,MONTADOR DE GESSO,Equipe Beta,1,1,0,NR06
+7111,Camila Nogueira Valente,MONTADOR DE STEEL FRAME,Equipe Beta,1,1,0,NR35
+7112,Karina Duarte Assunção,MONTADOR DE GESSO,Equipe Alfa,1,0,1,ASO
+7114,Amanda Paiva Macedo,AJ. DE MONTADOR DE STEEL FRAME,Equipe Beta,1,1,0,NR35
+7115,Nelson Abreu Matos,AJ. DE MONTADOR DE STEEL FRAME,Equipe Beta,1,1,0,ASO
+7117,Tânia Brandão Nogueira,AJ. DE MONTADOR DE STEEL FRAME,Equipe Gama,1,1,0,NR01
+7121,Jéssica Guimarães Xavier,AJ. DE MONTADOR DE STEEL FRAME,Equipe Alfa,1,1,0,NR35
+7127,Lúcia Bastos Sales,MONTADOR DE GESSO,Equipe Beta,1,1,0,NR18
+7131,Natália Araújo Xavier,AJ. DE MONTADOR DE STEEL FRAME,Equipe Alfa,1,1,0,NR06
+7134,Heitor Campos Abreu,MONTADOR DE STEEL FRAME,Equipe Gama,1,1,0,NR06
+7148,Ubirajara Rezende Valente,AJ. DE MONTADOR DE STEEL FRAME,Equipe Gama,1,1,0,NR18
