@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
   "name": "cartao_2",
   "position": {
-    "x": 158,
-    "y": 80,
+    "x": 20,
+    "y": 84,
     "z": 4,
-    "height": 100,
-    "width": 130,
+    "height": 96,
+    "width": 147,
     "tabOrder": 4
   },
   "visual": {
@@ -32,6 +32,21 @@
           ]
         }
       }
+    },
+    "objects": {
+      "categoryLabels": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "drillFilterOtherVisuals": true
   }

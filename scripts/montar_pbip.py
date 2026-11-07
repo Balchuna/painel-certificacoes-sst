@@ -441,8 +441,8 @@ class Pagina:
     def texto(self, nome, x, y, largura, altura, paragrafos) -> None:
         self.adicionar(nome, x, y, largura, altura, "textbox", objetos={"general": [{"properties": {"paragraphs": paragrafos}}]})
 
-    def cabecalho(self) -> None:
-        self.texto("titulo", 20, 8, 820, 60, [
+    def cabecalho(self, largura=820) -> None:
+        self.texto("titulo", 20, 8, largura, 60, [
             {"textRuns": [{"value": self.titulo, "textStyle": {"fontWeight": "bold", "fontSize": "18pt"}}]},
             {"textRuns": [{
                 "value": "Dados sintéticos. As regras de obrigatoriedade são parâmetros do modelo, "
@@ -464,20 +464,29 @@ class Pagina:
             )
 
 
-def cartao(pagina: Pagina, nome: str, x, y, largura, altura, nome_da_medida: str) -> None:
-    pagina.adicionar(nome, x, y, largura, altura, "card", papeis={"Values": [projecao(medida(nome_da_medida))]})
+def cartao(pagina: Pagina, nome: str, x, y, largura, altura, nome_da_medida: str,
+           fonte_do_valor=None, fonte_do_rotulo=None) -> None:
+    objetos = {}
+    if fonte_do_valor:
+        objetos["labels"] = [{"properties": {"fontSize": literal(f"{fonte_do_valor}D")}}]
+    if fonte_do_rotulo:
+        objetos["categoryLabels"] = [{"properties": {"fontSize": literal(f"{fonte_do_rotulo}D")}}]
+    pagina.adicionar(nome, x, y, largura, altura, "card", papeis={"Values": [projecao(medida(nome_da_medida))]},
+                     objetos=objetos or None)
 
 
 def pagina_visao_geral() -> Pagina:
     pagina = Pagina("visao_geral", "Visão geral")
-    pagina.cabecalho()
+    # A data de referência fica no cabeçalho: na fila de cartões, a data não cabia.
+    pagina.cabecalho(largura=600)
+    cartao(pagina, "cartao_1", 640, 4, 200, 72, "Data de Referência", fonte_do_valor=20, fonte_do_rotulo=9)
     pagina.filtros_de_equipe_e_funcao()
     cartoes = [
-        "Data de Referência", "Funcionários Ativos", "Funcionários Irregulares", "% Conformidade",
-        "Pendentes Obrigatórios", "Vencidos", "Vencem em 30 dias", "Vencem em 60 dias", "Vencem em 90 dias",
+        "Funcionários Ativos", "Funcionários Irregulares", "% Conformidade", "Pendentes Obrigatórios",
+        "Vencidos", "Vencem em 30 dias", "Vencem em 60 dias", "Vencem em 90 dias",
     ]
     for posicao, nome in enumerate(cartoes):
-        cartao(pagina, f"cartao_{posicao + 1}", 20 + posicao * 138, 80, 130, 100, nome)
+        cartao(pagina, f"cartao_{posicao + 2}", 20 + posicao * 155, 84, 147, 96, nome, fonte_do_rotulo=9)
     pagina.adicionar(
         "conformidade_por_funcao", 20, 195, 610, 505, "clusteredBarChart",
         papeis={
@@ -485,7 +494,11 @@ def pagina_visao_geral() -> Pagina:
             "Y": [projecao(medida("% Conformidade"))],
         },
         ordem=[(medida("% Conformidade"), "Ascending")],
-        objetos={"labels": [{"properties": {"show": literal("true")}}]},
+        objetos={
+            "labels": [{"properties": {"show": literal("true")}}],
+            # Mais espaço para o nome da função, que é longo.
+            "categoryAxis": [{"properties": {"maxMarginFactor": literal("45L")}}],
+        },
         container=titulo("Conformidade por função (itens obrigatórios em dia)"),
     )
     pagina.adicionar(
@@ -496,7 +509,7 @@ def pagina_visao_geral() -> Pagina:
         },
         ordem=[(coluna("dim_calendario", "mes_ano"), "Ascending")],
         objetos={"labels": [{"properties": {"show": literal("true")}}]},
-        container=titulo("Itens que vencem por mês, nos 12 meses a partir da data de referência"),
+        container=titulo("Itens que vencem por mês, nos próximos 12 meses"),
         filtros=[filtro_entre("doze_meses", coluna("dim_calendario", "meses_da_referencia"), "0L", "11L")],
     )
     return pagina

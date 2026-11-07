@@ -99,7 +99,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Itens que vencem por mês, nos 12 meses a partir da data de referência'"
+                  "Value": "'Itens que vencem por mês, nos próximos 12 meses'"
                 }
               }
             }

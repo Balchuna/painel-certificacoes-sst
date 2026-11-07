@@ -279,9 +279,11 @@ Renomeie a primeira página para "Visão geral" (clique duplo na aba, embaixo).
 
 *Por quê:* é a resposta direta à primeira pergunta do painel, "quem está irregular hoje e o que vence logo". Os números vêm de `01_visao_geral.csv` e `03_vencimentos_30_60_90.csv`.
 
+*Para caber:* com nove cartões numa fila, a data e os rótulos longos aparecem cortados. O projeto pronto põe o cartão da data no alto, ao lado do título, e os outros oito numa fila. Os rótulos usam fonte 9, em **Formatar > Rótulo da categoria**.
+
 **% conformidade por função.** Insira um **Gráfico de barras clusterizado**: `dim_funcao[funcao]` no eixo Y e `% Conformidade` no eixo X. Em **Mais opções (...) > Classificar eixo**, escolha `% Conformidade` e **Classificar em ordem crescente**.
 
-*Por quê:* em ordem crescente, a função com mais problema fica no alto. Deve começar por AJ. DE MONTADOR DE STEEL FRAME com 81,4% e terminar em ENCARREGADO DE OBRAS com 96,9% (`05_pendencias_por_funcao.csv`).
+*Por quê:* em ordem crescente, a função com mais problema fica no alto. Deve começar por AJ. DE MONTADOR DE STEEL FRAME com 81,4% e terminar em ENCARREGADO DE OBRAS com 96,9% (`05_pendencias_por_funcao.csv`). Se o nome da função aparecer cortado, aumente **Formatar > Eixo Y > Valores > Largura máxima** (o projeto pronto usa 45%).
 
 **Vencimentos por mês.** Insira um **Gráfico de colunas clusterizado**: `dim_calendario[mes_ano]` no eixo X e `Itens com Vencimento` no eixo Y. No painel **Filtros**, em **Filtros neste visual**, arraste `dim_calendario[meses_da_referencia]`, escolha **Filtragem avançada** e use "é maior ou igual a 0" **e** "é menor ou igual a 11".
 
