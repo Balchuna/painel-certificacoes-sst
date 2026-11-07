@@ -215,14 +215,48 @@ Cada célula da matriz mostra um texto curto (a data de vencimento, "falta", "co
 
 ### O Excel como banco de provas
 
-O Power BI Desktop não está instalado aqui, e não há como automatizá-lo. O Excel tem o mesmo motor de Power Query e o mesmo motor de modelo de dados que roda DAX. Por isso, `tests/test_powerbi.py` abre o Excel por automação, cria as consultas a partir dos arquivos `.m`, carrega as tabelas no modelo de dados, cria as relações de [MODELO.md](MODELO.md) e roda as medidas de `dax/medidas.dax`. O resultado tem de bater com o gabarito do SQL.
+Na fase 3, o Power BI Desktop não estava instalado aqui. O Excel tem o mesmo motor de Power Query e o mesmo motor de modelo de dados que roda DAX. Por isso, `tests/test_powerbi.py` abre o Excel por automação, cria as consultas a partir dos arquivos `.m`, carrega as tabelas no modelo de dados, cria as relações de [MODELO.md](MODELO.md) e roda as medidas de `dax/medidas.dax`. O resultado tem de bater com o gabarito do SQL.
 
 Os dados gerados não têm nenhum item vencendo exatamente na data de referência, no último dia de uma janela ou no dia seguinte. Sem esses casos, trocar `<` por `<=` numa medida passaria nos testes. Por isso, o cenário variado planta um item obrigatório em cada fronteira: vence ontem, vence hoje, vence no último dia de cada janela e no dia seguinte. Um teste confere que eles estão lá.
 
-O que esse teste não cobre: os visuais, a formatação condicional e diferenças de versão entre o motor do Excel e o do Power BI Desktop. Essa conferência fica para a montagem, e o passo a passo diz que número cada visual tem de mostrar.
+O que esse teste não cobre: os visuais, a formatação condicional e diferenças de versão entre o motor do Excel e o do Power BI Desktop. A diferença entre os motores passou a ser conferida na fase 4; os visuais, ainda não.
 
 ### Só funções que o Excel também conhece
 
 O motor do Excel não conhece todas as funções do Power BI Desktop. A primeira rodada do teste mostrou uma: `SELECTEDVALUE`. Onde ela caberia, as medidas usam `IF ( HASONEVALUE ( coluna ), VALUES ( coluna ) )`, que faz a mesma conta e funciona nos dois. Assim, o arquivo que o teste confere é o mesmo que se cola no Power BI, sem uma versão para cada motor.
 
 O teste precisa de Windows, Excel e pywin32, e leva alguns minutos. Sem Excel, ele é pulado. Para rodar só o resto: `python -m pytest -m "not excel"`.
+
+## Fase 4: o projeto do Power BI
+
+### O projeto é gerado, não montado à mão
+
+O passo a passo de [MONTAGEM.md](MONTAGEM.md) monta o painel clicando. Um painel montado assim depende de cada clique, e um clique esquecido não fica registrado em lugar nenhum. O formato de projeto do Power BI (PBIP) é todo em texto: o modelo em TMDL e o relatório em PBIR. Por isso, `scripts/montar_pbip.py` escreve o projeto a partir das peças da fase 3. As consultas vêm de `powerquery/`, as medidas de `dax/medidas.dax`, as relações de [MODELO.md](MODELO.md), a ordem das consultas e as cores da legenda de [MONTAGEM.md](MONTAGEM.md), e o tema de `tema/tema.json`.
+
+Assim, não há uma segunda cópia das consultas e das medidas que possa ficar diferente da primeira. O teste exige que `powerbi/` seja exatamente o que o gerador produz agora, e que gerar duas vezes dê os mesmos arquivos, byte a byte.
+
+O custo: um ajuste feito à mão no Power BI e salvo em `powerbi/` faz o teste cair. O ajuste tem de ir para o gerador.
+
+### Caminho de exemplo no projeto versionado
+
+O parâmetro `PastaEntrada` é a única coisa do projeto que depende do computador. No `powerbi/` versionado, ele traz `C:\caminho\do\projeto\data\entrada`, que não existe. Para abrir de verdade, gera-se uma cópia fora do repositório com `--pasta-entrada`, ou troca-se o parâmetro no Power BI. Um teste impede que um caminho que passa pela pasta `Users` do Windows entre no projeto, porque ele mostraria o nome do usuário.
+
+### Quem lê o projeto é o próprio Power BI
+
+`tests/test_pbip.py` não lê o TMDL com um analisador feito aqui. Ele usa a biblioteca que vem com o Power BI Desktop, a mesma que o Desktop usa para abrir o projeto. O teste confere o que ela entendeu: as tabelas, os tipos das colunas, as consultas, as medidas com formato e descrição, as relações e os ajustes do passo 4 de [MONTAGEM.md](MONTAGEM.md). Sem o Power BI instalado, esses testes são pulados.
+
+Os arquivos do relatório foram conferidos, durante o desenvolvimento, contra os esquemas JSON que a Microsoft publica para o PBIR, sem erro. Uma rodada com erros plantados de propósito mostrou que a conferência os pegava. Ela não ficou nos testes, porque os esquemas ficam na internet.
+
+### Sem tema base
+
+Um relatório salvo pelo Power BI costuma levar, além do tema próprio, um tema base com o nome de uma versão do Desktop, copiado de dentro do programa. O projeto gerado traz só o tema de `tema/tema.json`, porque o tema base é um arquivo do programa e muda de uma versão para outra. O Desktop abriu o projeto assim, sem aviso; a aparência na tela ainda não foi conferida.
+
+### Os números conferidos dentro do Power BI Desktop
+
+Os testes do Excel passaram a rodar também no Power BI Desktop. `tests/modelo_powerbi.py` gera o projeto apontando para a entrada do cenário e abre uma janela do Desktop com ele. Depois, pede a atualização ao motor que o Desktop roda por dentro e faz as mesmas consultas que o teste faz no Excel. Uma diferença: as medidas são as do modelo do projeto, sem o bloco DEFINE de `dax/medidas.dax`. O que se confere é o projeto como o Desktop o carrega.
+
+Resultado em 07/11/2026, com o Power BI Desktop 2.159 da Microsoft Store: 47 testes passaram e 1 foi pulado de propósito (o das fronteiras, que só vale no cenário variado), em 2 minutos. Na visão geral, o Power BI dá os números do gabarito: 138 funcionários ativos, 63 irregulares, 86,4% de conformidade, 88 pendentes obrigatórios, 30 vencidos e 18, 34 e 50 itens nas três janelas. Para ver se o teste pega erro, a medida `Vencidos` foi estragada de propósito, contando só o que venceu há mais de 30 dias. O teste caiu, com 61 irregulares em vez de 63, e o arquivo voltou ao original, conferido por hash.
+
+O teste abre uma janela na tela, por isso só roda quando pedido: `python -m pytest -q tests/test_powerbi.py --desktop -m desktop`. No fim, fecha a janela sem salvar.
+
+O que ainda não foi conferido: a aparência dos visuais, as cores na tela e se cada visual mostra o que o passo a passo diz. Isso depende de abrir o projeto na tela, o que fica para a exportação do PDF e das imagens.

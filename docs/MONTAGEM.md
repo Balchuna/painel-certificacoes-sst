@@ -16,6 +16,26 @@ Conte com uma a duas horas na primeira vez. A maior parte é colar consultas e a
 
 > Os nomes dos menus estão como aparecem no Power BI Desktop em português. Se a sua versão mostrar um nome um pouco diferente, procure pelo sentido: os menus mudam de lugar de uma versão para outra, as etapas não.
 
+## O atalho: abrir o projeto pronto
+
+O repositório já traz o painel montado, em `powerbi/`, gerado por `scripts/montar_pbip.py` a partir das mesmas peças deste passo a passo. Para usá-lo:
+
+1. Gere uma cópia fora do repositório, apontando para a sua pasta de entrada:
+
+   ```bash
+   python scripts/montar_pbip.py --pasta-entrada "D:\Repos\painel-certificacoes-sst\data\entrada" --saida ../painel-local
+   ```
+
+   *Por quê:* o caminho da pasta fica gravado no projeto. Na cópia vai o seu caminho; o `powerbi/` do repositório guarda só um caminho de exemplo, para o nome do seu usuário do Windows não ir para o git.
+2. No Power BI Desktop, **Arquivo > Abrir** e escolha `PainelSST.pbip` na pasta `painel-local`.
+3. Clique em **Página Inicial > Atualizar**. Se aparecer um aviso sobre a pasta, confira o caminho em **Página Inicial > Transformar dados > Editar parâmetros > PastaEntrada**.
+4. Confira as quatro páginas com os números dos passos 7 a 10.
+5. Exporte o PDF e as imagens como no passo 12.
+
+O resto deste guia monta o mesmo painel do zero. Serve para entender cada peça, ou se o projeto pronto não abrir na sua versão do Power BI.
+
+Se você ajustar o painel no Power BI e quiser guardar o ajuste no repositório, saiba que `tests/test_pbip.py` exige que `powerbi/` seja exatamente o que o gerador produz. O ajuste precisa ir para `scripts/montar_pbip.py`, ou o teste acusa a diferença.
+
 ## 1. Antes de começar
 
 1. Instale o Power BI Desktop. É gratuito e só existe para Windows. O caminho mais simples é a Microsoft Store: procure "Power BI Desktop" e clique em **Obter**.
@@ -330,6 +350,7 @@ Para mudar a data de referência ou as janelas, edite a aba `Alertas` de `parame
    *Por quê:* o PBIP guarda o relatório e o modelo em arquivos de texto, que o git compara linha a linha; o `.pbix` é um arquivo fechado. O Power BI cria sozinho um `.gitignore` dentro da pasta do projeto, para o cache e as configurações locais não irem para o repositório.
 2. Antes de pôr o PBIP no git, confira o caminho gravado no parâmetro `PastaEntrada`: ele vai junto. Um caminho como `D:\Repos\...` não diz nada; um que passa pela pasta `Users` do Windows mostra o nome do usuário do computador.
 3. **Arquivo > Exportar > Exportar para PDF** gera um PDF com as quatro páginas.
+4. Para as imagens, abra cada página e capture com a Ferramenta de Captura do Windows (**Windows+Shift+S**).
 
 ## 13. Se algo der errado
 

@@ -38,7 +38,7 @@ A limpeza também muda o formato. Em vez de uma coluna por treinamento, fica uma
 
 **5. O painel.** O Power BI não lê a versão limpa: lê a mesma planilha bagunçada e refaz a limpeza por conta própria, no Power Query, que é a parte do Power BI que prepara os dados. Depois, as medidas fazem as contas, e as quatro páginas mostram o resultado: a visão geral, a matriz farol (um quadro de funcionário por treinamento, pintado pela situação), a agenda de reciclagem e a lista do que a limpeza descartou.
 
-O Power BI não roda sozinho por automação, mas o Excel tem o mesmo Power Query e o mesmo motor de contas por dentro. Os testes montam o painel dentro do Excel e exigem que ele chegue à mesma versão limpa e aos mesmos números do gabarito. O passo a passo para montar no Power BI está em [MONTAGEM.md](MONTAGEM.md).
+O painel não é montado clicando: um script escreve o projeto do Power BI a partir das consultas, das medidas e do tema, e o resultado fica em `powerbi/`. Os testes conferem o painel em dois lugares. No Excel, que tem o mesmo Power Query e o mesmo motor de contas por dentro, e no próprio Power BI, que abre o projeto, atualiza e responde às mesmas perguntas. Nos dois, os números têm de ser iguais aos do gabarito. Quem quiser montar à mão, clique a clique, tem o passo a passo em [MONTAGEM.md](MONTAGEM.md).
 
 ## Como cada item ganha uma situação
 

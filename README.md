@@ -1,6 +1,6 @@
 # Painel de Certificações SST
 
-Projeto em construção. **Já existem a fase 1, com os dados de entrada, a fase 2, com o SQL de referência e o gabarito, e a fase 3, com o pacote do Power BI: consultas, medidas, tema e o passo a passo para montar.** O painel montado, com o PDF e as imagens, vem na fase 4 e precisa bater com o gabarito.
+Projeto em construção. **Já existem a fase 1, com os dados de entrada, a fase 2, com o SQL de referência e o gabarito, a fase 3, com o pacote do Power BI, e o projeto do Power BI pronto para abrir, em `powerbi/`, com as quatro páginas.** Os números do projeto foram conferidos dentro do Power BI Desktop e batem com o gabarito. Faltam o PDF e as imagens do painel, que dependem de abrir o projeto na tela.
 
 A pergunta que o painel vai responder: numa obra com cerca de 150 funcionários, quem está irregular hoje, o que vence nos próximos 30, 60 e 90 dias, e qual função e qual treinamento concentram as pendências?
 
@@ -73,6 +73,20 @@ Cada passo usa o resultado do anterior:
 
 ```bash
 python -m pytest -q -m "not excel"
+```
+
+O projeto do Power BI em `powerbi/` sai do pacote por um script. Para abrir no seu computador, gere uma cópia fora do repositório apontando para a sua pasta de entrada (o caminho fica gravado no projeto):
+
+```bash
+python scripts/montar_pbip.py --pasta-entrada "D:\Repos\painel-certificacoes-sst\data\entrada" --saida ../painel-local
+```
+
+Depois abra `../painel-local/PainelSST.pbip` no Power BI Desktop e clique em **Atualizar**. Sem `--saida`, o script regrava `powerbi/`, com um caminho de exemplo no lugar do seu.
+
+Com o Power BI Desktop instalado, os mesmos testes do Excel rodam também dentro dele. Abre uma janela na tela e leva uns 2 minutos:
+
+```bash
+python -m pytest -q tests/test_powerbi.py --desktop -m desktop
 ```
 
 A mesma semente e a mesma data de referência geram sempre os mesmos arquivos. Para outro cenário:
@@ -188,7 +202,7 @@ A NR-35 e o ASO empatam em número de pendências. A NR-35 fica à frente pela t
 
 ## O pacote do Power BI
 
-O painel ainda não está montado: o Power BI Desktop não roda por automação. Está tudo pronto para montar, e [docs/MONTAGEM.md](docs/MONTAGEM.md) diz como, clique a clique, com o número que cada visual tem de mostrar.
+O painel está em `powerbi/`, como projeto do Power BI (PBIP): o modelo em TMDL e o relatório em PBIR, tudo em arquivos de texto. `scripts/montar_pbip.py` gera esse projeto a partir das peças abaixo, sem copiar nada à mão. Para montar do zero, clique a clique, [docs/MONTAGEM.md](docs/MONTAGEM.md) diz como, com o número que cada visual tem de mostrar.
 
 | Parte | Onde | O que faz |
 |---|---|---|
@@ -199,7 +213,9 @@ O painel ainda não está montado: o Power BI Desktop não roda por automação.
 
 As quatro páginas: visão geral, matriz farol, agenda de reciclagem e qualidade dos dados.
 
-`tests/test_powerbi.py` monta esse pacote dentro do Excel, que tem os mesmos motores de Power Query e de modelo de dados do Power BI, e confere que as tabelas são iguais às de `data/limpa` e que as medidas dão os números do gabarito. O teste roda duas vezes: com a entrada padrão e com uma entrada mais bagunçada, que também tem itens vencendo em cada fronteira das janelas. Os visuais e as cores na tela ficam para a conferência na montagem.
+`tests/test_powerbi.py` confere que as tabelas são iguais às de `data/limpa` e que as medidas dão os números do gabarito. Roda em dois motores. No Excel, que tem o mesmo Power Query e o mesmo motor de modelo de dados do Power BI, monta o pacote por automação. No Power BI Desktop, abre o projeto gerado, atualiza e consulta o motor dele. Em cada motor, roda duas vezes: com a entrada padrão e com uma entrada mais bagunçada, que também tem itens vencendo em cada fronteira das janelas.
+
+`tests/test_pbip.py` confere o projeto em si: que `powerbi/` é exatamente o que o gerador produz, que o modelo lido pela biblioteca do Power BI tem as consultas, as medidas e as relações do pacote, e que cada visual usa campos que existem no modelo. A aparência dos visuais na tela ainda não foi conferida: fica para quando o projeto for aberto para exportar o PDF.
 
 ## Estrutura
 
@@ -207,6 +223,7 @@ As quatro páginas: visão geral, matriz farol, agenda de reciclagem e qualidade
 scripts/gerar_dados.py      gera as duas planilhas
 scripts/limpar_dados.py     limpa as planilhas e grava a versão limpa
 scripts/gerar_gabarito.py   monta o banco e grava o gabarito
+scripts/montar_pbip.py      gera o projeto do Power BI a partir do pacote
 data/entrada/               as planilhas geradas
 data/limpa/                 a versão limpa, em CSV
 sql/01_tabelas.sql          as tabelas, com as regras que os dados precisam seguir
@@ -216,6 +233,7 @@ sql/gabarito/               o resultado delas, que o painel precisa bater
 powerquery/                 uma consulta Power Query por arquivo
 dax/medidas.dax             as medidas
 tema/tema.json              as cores do painel
+powerbi/                    o projeto do Power BI (PBIP), gerado por montar_pbip.py
 tests/                      os testes de cada etapa e o cálculo independente em pandas
 docs/COMO-FUNCIONA.md       o projeto explicado sem jargão
 docs/DECISOES.md            as escolhas feitas e o porquê
