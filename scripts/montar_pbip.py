@@ -612,7 +612,8 @@ def escrever_relatorio(pasta: Path) -> None:
     })
     tema = pasta / "StaticResources" / "RegisteredResources" / "tema.json"
     tema.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(TEMA, tema)
+    # Relido como texto: num clone com core.autocrlf, tema/tema.json vem com CRLF.
+    escrever(tema, TEMA.read_text(encoding="utf-8"))
 
     paginas = [pagina_visao_geral(), pagina_matriz_farol(), pagina_agenda(), pagina_qualidade()]
     escrever_json(definicao / "pages" / "pages.json", {
