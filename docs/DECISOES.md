@@ -34,6 +34,8 @@ A planilha larga guarda data ou nada. Parte da legenda de 10 status do modelo "f
 
 Fica para decidir na fase 2 se o painel mostra só os status que os dados sustentam ou se os dados ganham mais uma coluna.
 
+**Decidido na fase 2:** o painel mostra só os status que os dados sustentam. Ver "Os status de entrega e assinatura ficam fora".
+
 ### Data de referência como parâmetro
 
 Vale 2026-11-01 por padrão, o exemplo do spec. Nenhuma conta usa a data de hoje. Sem isso, um mesmo arquivo daria números diferentes a cada dia.
@@ -74,6 +76,99 @@ Por treinamento, a concentração não depende de fator: os treinamentos com ven
 
 Os 30 vencidos incluem itens CONDICIONAIS que têm data: se o funcionário fez o treinamento e ele venceu, a conta entra aí. A regra final de como o painel trata esses itens é da fase 2.
 
+**Decidido na fase 2:** os condicionais vencidos aparecem na contagem de itens vencidos (30), mas não viram pendência. As pendências por vencimento são só as dos obrigatórios (27). Ver "CONDICIONAL avisa, mas não pende".
+
 ### Testes independentes do gerador
 
 Os testes rodam o script pela linha de comando e leem as planilhas com um leitor próprio, em `tests/apoio.py`, sem importar nada do gerador. Se o gerador errar uma conta, os testes não herdam o mesmo erro.
+
+## Fase 2: SQL de referência e gabarito
+
+### A situação de cada item, nesta ordem
+
+Um item é um par funcionário ativo e treinamento. A view `vw_status_item` dá a ele a primeira situação que se aplica:
+
+| Ordem | Condição | Situação |
+|---|---|---|
+| 1 | A regra da função é NÃO | Não aplicável |
+| 2 | Regra SIM e nenhuma emissão | Sem registro |
+| 3 | Regra CONDICIONAL e nenhuma emissão | Condicional sem registro |
+| 4 | Treinamento com validade 0 | Sem vencimento |
+| 5 | Venceu antes da data de referência | Vencido |
+| 6 | Vence em até 30 dias | Vence em até 30 dias |
+| 7 | Vence de 31 a 60 dias | Vence em 31 a 60 dias |
+| 8 | Vence de 61 a 90 dias | Vence em 61 a 90 dias |
+| 9 | O resto | Válido |
+
+Os números 30, 60 e 90 vêm da tabela `parametro`, e os rótulos acompanham. Mudar as janelas na planilha muda as faixas sem mexer no SQL.
+
+### NÃO é sempre "não aplicável"
+
+Mesmo que alguém tenha uma emissão de um treinamento que a função não pede, o item não vence, não avisa e não entra na agenda. Se entrasse, o painel mandaria renovar o que ninguém precisa.
+
+### CONDICIONAL avisa, mas não pende
+
+CONDICIONAL quer dizer que o treinamento depende de a pessoa exercer certa atividade, e a planilha não diz se ela exerce. Por isso:
+
+- não entra na conformidade nem nas pendências: seria cobrar de quem talvez não precise;
+- entra na agenda, nas janelas de vencimento e na contagem de itens vencidos quando há data: se a pessoa fez o treinamento, é provável que precise dele, e alguém tem de decidir se renova.
+
+Na data de referência são 3 condicionais vencidos e 4 condicionais na agenda.
+
+### Vence hoje ainda não venceu
+
+Um item que vence na própria data de referência fica em "Vence em até 30 dias", não em "Vencido". Vencido é só o que venceu antes. As janelas e a agenda contam a partir desse dia 0.
+
+### Faixas no status, janelas que somam na consulta
+
+No status de um item, as faixas não se sobrepõem: um item está em "31 a 60" ou em "até 30", nunca nos dois. Na consulta `03_vencimentos_30_60_90`, as janelas somam: "até 60 dias" inclui o que vence em até 30. É assim que a pergunta "o que vence nos próximos 60 dias?" costuma ser feita.
+
+### Vencimento contado como no Excel
+
+O vencimento é a emissão mais recente mais a validade em meses. Quando o mês de destino é mais curto, a conta para no último dia dele: 29/02/2024 mais 12 meses dá 28/02/2025. É o que fazem o DATAM do Excel e o EDATE do Power BI.
+
+O SQLite sozinho daria 01/03/2025. A view corrige isso, e um teste confere seis casos de fim de mês.
+
+### Duplicado: fica a primeira linha
+
+As duas linhas da matrícula duplicada ficam iguais depois de limpas, então tanto faz qual sobra. A primeira é a escolha que não depende de nenhum critério extra. A segunda vai para `qualidade_rejeicoes.csv`.
+
+### Data inválida: descarta a célula, não a linha
+
+A data 31/02/2025 é descartada, mas o resto da linha é válido e fica. O item dela passa a contar como sem registro: o funcionário pode até ter feito o treinamento, mas não há data que prove. A rejeição fica registrada com o valor original.
+
+No `Historico`, uma linha com data inválida não tem mais nada a aproveitar e é descartada inteira. Os dados gerados não têm esse caso, mas a limpeza já o trata.
+
+### As tabelas recusam o que não faz sentido
+
+`sql/01_tabelas.sql` tem regras que a carga precisa cumprir: data no formato certo, matrícula que existe no cadastro, função que tem regra, janelas que crescem, uma linha só de parâmetros. Se a versão limpa quebrar uma delas, a carga para, diz qual arquivo deu problema e apaga o banco pela metade.
+
+A tabela `dim_funcao` existe só para isso: sem ela, um funcionário de uma função sem regra sumiria das contas sem aviso.
+
+### Os status de entrega e assinatura ficam fora
+
+O modelo "farol" tem status como "pendente de assinatura" e "entregue e assinado". A planilha de entrada só guarda data ou vazio, e criar uma coluna para esses status seria inventar dados que o spec não pediu. O painel mostra só as situações da tabela acima.
+
+### Taxa de pendência, não só a quantidade
+
+As funções têm tamanhos muito diferentes: 53 montadores de steel frame, 6 técnicos de segurança. Ordenar pela quantidade de pendências faria a função maior parecer pior só por ser maior. Por isso as consultas 05 e 06 ordenam pela taxa, a parte dos itens obrigatórios que está pendente, e trazem também a parte de cada uma no total de pendências.
+
+Na função, o ajudante de montador lidera nos dois critérios. No treinamento, a NR-35 e o ASO empatam em quantidade (23 cada), e a NR-35 lidera pela taxa.
+
+### Só os treinamentos que alguém precisa ter
+
+A consulta 06 deixa de fora os sete treinamentos que não são SIM para nenhuma função. Sem item obrigatório, a taxa deles seria uma divisão por zero.
+
+### Percentuais com uma casa
+
+O SQL arredonda os percentuais para uma casa decimal, como o painel deve mostrar. O cálculo em pandas guarda o valor exato, e o teste aceita diferença de até 0,05 ponto, o que cabe no arredondamento e em mais nada.
+
+### Um cálculo independente para conferir
+
+`tests/calculo_pandas.py` não usa a versão limpa, o SQL nem os scripts. Lê as planilhas brutas, limpa do próprio jeito e refaz as seis respostas. O teste exige que ele e o SQL concordem nos dados publicados e também com outra semente e outra data de referência.
+
+Para conferir os próprios testes, cada regra acima foi quebrada de propósito numa cópia do código, uma de cada vez. Cada quebra precisa derrubar algum teste além da comparação com os arquivos versionados.
+
+### CSV com o mesmo conteúdo em qualquer sistema
+
+Os CSVs saem em UTF-8 e com fim de linha LF, e o `.gitattributes` mantém o LF no Windows. Assim, uma nova limpeza sem mudança nos dados não aparece no git.
