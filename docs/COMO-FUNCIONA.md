@@ -34,7 +34,7 @@ A limpeza também muda o formato. Em vez de uma coluna por treinamento, fica uma
 
 **3. O banco.** A versão limpa entra num banco SQLite, um arquivo só, sem servidor. As tabelas têm regras: uma data precisa ser data, uma matrícula precisa existir no cadastro. Se algo quebrar uma regra, a carga para e diz qual arquivo deu problema, em vez de seguir com um número errado.
 
-**4. O gabarito.** Seis consultas respondem às quatro perguntas. O resultado de cada uma fica gravado em `sql/gabarito/`. Quando o painel em Power BI ficar pronto, os números dele precisam ser iguais a esses.
+**4. O gabarito.** Seis consultas respondem às quatro perguntas. O resultado de cada uma fica gravado em `sql/gabarito/`. Os números do painel em Power BI precisam ser iguais a esses, e os testes conferem isso.
 
 **5. O painel.** O Power BI não lê a versão limpa: lê a mesma planilha bagunçada e refaz a limpeza por conta própria, no Power Query, que é a parte do Power BI que prepara os dados. Depois, as medidas fazem as contas, e as quatro páginas mostram o resultado: a visão geral, a matriz farol (um quadro de funcionário por treinamento, pintado pela situação), a agenda de reciclagem e a lista do que a limpeza descartou.
 

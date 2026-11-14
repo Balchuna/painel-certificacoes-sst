@@ -223,7 +223,7 @@ Selecione a tabela `Medidas`, clique em **Nova medida** e cole uma medida por ve
 | `Na Agenda` | 1 quando o item vence dentro da maior janela |
 | `Linhas Rejeitadas` | quantas coisas a limpeza deixou de fora |
 
-Os nomes "30, 60 e 90 dias" são os do spec. Os dias de verdade vêm da aba Alertas: se ela disser 15, 45 e 75, as medidas contam 15, 45 e 75, com o mesmo nome.
+Os nomes "30, 60 e 90 dias" são fixos. Os dias de verdade vêm da aba Alertas: se ela disser 15, 45 e 75, as medidas contam 15, 45 e 75, com o mesmo nome.
 
 ### 5.4 Formatos
 
@@ -322,7 +322,7 @@ Crie uma página nova e chame-a de "Agenda de reciclagem".
 4. Em **Formatar visual > Elementos de célula**, escolha a série `Status Farol`, ligue **Cor da tela de fundo**, **fx**, **Valor do campo**, `Cor Farol`.
 5. Copie as segmentações de equipe e função da página 1 e sincronize.
 
-*Por quê:* é a lista de trabalho da semana: quem precisa refazer o quê, do vencimento mais próximo ao mais distante. O filtro `Na Agenda` deixa só o que vence da data de referência até o fim da maior janela; o que já venceu está na matriz e nos cartões, não aqui. Os filtros de equipe e função são os que o spec pede: cada encarregado vê a agenda da sua turma.
+*Por quê:* é a lista de trabalho da semana: quem precisa refazer o quê, do vencimento mais próximo ao mais distante. O filtro `Na Agenda` deixa só o que vence da data de referência até o fim da maior janela; o que já venceu está na matriz e nos cartões, não aqui. Os filtros são de equipe e de função, para que cada encarregado veja a agenda da sua turma.
 
 Devem aparecer 50 linhas, as mesmas de `04_agenda_reciclagem.csv`. As duas primeiras vencem em 10/11/2026, faltando 9 dias: 7061 na PEMT2 e 7076 no ASO.
 

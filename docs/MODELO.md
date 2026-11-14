@@ -138,4 +138,4 @@ Todos são de um para muitos, com o filtro indo do lado "um" para o lado "muitos
 
 **`qualidade_rejeicoes` fica solta.** É a lista do que não entrou no modelo; ela não descreve emissão nenhuma e só alimenta a página de qualidade.
 
-**O calendário liga no vencimento, e não na emissão.** A pergunta do painel é "o que vence quando". Uma segunda ligação, pela emissão, teria de ficar inativa e ser ligada à mão com `USERELATIONSHIP`; nenhuma pergunta do spec precisa dela.
+**O calendário liga no vencimento, e não na emissão.** A pergunta do painel é "o que vence quando". Uma segunda ligação, pela emissão, teria de ficar inativa e ser ligada à mão com `USERELATIONSHIP`; nenhuma pergunta do painel precisa dela.

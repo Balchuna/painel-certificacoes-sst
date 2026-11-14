@@ -1,8 +1,8 @@
 # Painel de Certificações SST
 
-Painel em Power BI para controlar exames e treinamentos obrigatórios de uma obra fictícia. Os dados saem de um gerador com semente fixa. Um gabarito em SQL, conferido por um cálculo independente em pandas, diz qual número cada visual tem de mostrar. Os testes montam as consultas e as medidas no Excel, abrem o projeto no próprio Power BI Desktop e exigem, nos dois, os números do gabarito. O painel também foi aberto e conferido na tela, e o PDF e as imagens das quatro páginas estão em [docs/painel/](docs/painel/).
+Painel em Power BI para controlar os exames e treinamentos obrigatórios de uma obra fictícia. Ele responde a uma pergunta: numa obra com cerca de 150 funcionários, quem está irregular hoje, o que vence nos próximos 30, 60 e 90 dias, e qual função e qual treinamento concentram as pendências?
 
-A pergunta que o painel responde: numa obra com cerca de 150 funcionários, quem está irregular hoje, o que vence nos próximos 30, 60 e 90 dias, e qual função e qual treinamento concentram as pendências?
+Os dados saem de um gerador com semente fixa. Antes do painel, montei um gabarito em SQL que diz qual número cada visual tem de mostrar, e um cálculo separado em pandas confere esse gabarito. Os testes montam as consultas e as medidas no Excel e no Power BI Desktop e só passam se os dois chegarem aos números do gabarito. Também abri o painel e conferi as páginas na tela. O PDF e as imagens das quatro páginas estão em [docs/painel/](docs/painel/).
 
 ![Página Visão geral do painel: oito cartões com os números do dia, a conformidade de cada função e os itens que vencem a cada mês](docs/painel/1-visao-geral.png)
 
@@ -259,7 +259,7 @@ docs/painel/                o PDF exportado do Power BI e uma imagem de cada pá
 
 - Os dados são sintéticos. A concentração de pendências nos ajudantes de montador foi colocada no gerador; não é achado sobre uma obra real.
 - As regras de obrigatoriedade são parâmetros do modelo, não interpretação jurídica das NRs.
-- O modelo "farol" de referência tem status de entrega e de assinatura. A planilha só guarda data ou vazio, e o painel mostra só as situações que os dados sustentam.
+- A planilha farol que serviu de modelo tem status de entrega e de assinatura. A planilha só guarda data ou vazio, e o painel mostra só as situações que os dados sustentam.
 - Um número digitado numa célula de data, como 45000, é rejeitado pela limpeza em Python e lido como data pelo Power Query. Os dados gerados não têm esse caso.
 - O PDF mostra só as primeiras linhas da matriz e da agenda, que rolam na tela. O clique nos filtros de equipe e de função não foi conferido na tela.
 - No GitHub, as máquinas não têm Excel nem Power BI Desktop. Lá, os testes que precisam deles são pulados, e só rodam num Windows com os programas instalados.

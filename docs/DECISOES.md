@@ -1,16 +1,16 @@
 # Decisões
 
-## Fase 1: dados sintéticos
+## Os dados sintéticos
 
 ### Uma coluna por treinamento e, ainda assim, histórico
 
-O spec pede as duas coisas, mas uma célula só guarda uma data. A aba `Controle` traz a emissão mais recente de cada item e a aba `Historico` traz as anteriores, em formato longo.
+O controle precisa de uma coluna por treinamento e também do histórico de emissões, mas uma célula só guarda uma data. A aba `Controle` traz a emissão mais recente de cada item e a aba `Historico` traz as anteriores, em formato longo.
 
 Quem limpar a planilha precisa juntar as duas abas para ter o histórico completo.
 
 ### Nove células NÃO que a referência não tem
 
-O spec diz que a `Config_SST` traz SIM, NÃO e CONDICIONAL, mas ela só tem SIM e CONDICIONAL. Sem nenhum NÃO, o caso "não aplicável" nunca apareceria no painel.
+A planilha de referência, `Config_SST`, deveria trazer SIM, NÃO e CONDICIONAL, mas só tem SIM e CONDICIONAL. Sem nenhum NÃO, o caso "não aplicável" nunca apareceria no painel.
 
 Por isso nove células CONDICIONAL viraram NÃO:
 
@@ -24,7 +24,7 @@ A escolha é só um parâmetro do modelo, para exercitar o caso. Não é interpr
 
 ### O que veio da referência
 
-Vieram da `Config_SST` os 5 nomes de função, os 12 códigos de treinamento e as validades em meses, porque o spec pede "os treinamentos da `Config_SST`". São rótulos genéricos, sem dado de pessoa. Nomes, matrículas e datas são todos novos.
+Vieram da `Config_SST` os 5 nomes de função, os 12 códigos de treinamento e as validades em meses, para o painel usar os mesmos treinamentos da planilha de referência. São rótulos genéricos, sem dado de pessoa. Nomes, matrículas e datas são todos novos.
 
 O script não lê as referências: os valores estão escritos nele. Assim ninguém precisa da planilha original para reproduzir os dados.
 
@@ -32,13 +32,11 @@ O script não lê as referências: os valores estão escritos nele. Assim ningu�
 
 A planilha larga guarda data ou nada. Parte da legenda de 10 status do modelo "farol" não cabe aí: pendências de entrega, assinatura e atualização, e entregue e assinado.
 
-Fica para decidir na fase 2 se o painel mostra só os status que os dados sustentam ou se os dados ganham mais uma coluna.
-
-**Decidido na fase 2:** o painel mostra só os status que os dados sustentam. Ver "Os status de entrega e assinatura ficam fora".
+Isso foi decidido na etapa do SQL: o painel mostra só os status que os dados sustentam. Ver "Os status de entrega e assinatura ficam fora".
 
 ### Data de referência como parâmetro
 
-Vale 2026-11-01 por padrão, o exemplo do spec. Nenhuma conta usa a data de hoje. Sem isso, um mesmo arquivo daria números diferentes a cada dia.
+Vale 2026-11-01 por padrão. Nenhuma conta usa a data de hoje. Sem isso, um mesmo arquivo daria números diferentes a cada dia.
 
 ### Arquivos idênticos byte a byte
 
@@ -56,11 +54,11 @@ A limpeza precisa dar um resultado único, senão o gabarito vira opinião:
 - O duplicado fica a 10 linhas ou mais do original, para não ser achado a olho.
 - A data inválida cai em item obrigatório de funcionário ativo. Rejeitá-la muda um número do painel.
 - Esse item não tem emissão anterior no histórico. Rejeitada a data, ele fica sem registro, sem discussão.
-- Em cada linha com data em texto, todas as datas estão em texto. O defeito é por linha, como o spec descreve.
+- Em cada linha com data em texto, todas as datas estão em texto. O defeito é por linha, não por célula.
 
-### Só os defeitos pedidos
+### Só os defeitos planejados
 
-Cabeçalho na primeira linha, sem linhas de título, sem nomes de função escritos de outro jeito. Inventar outros defeitos daria mais trabalho na limpeza sem que o spec tenha pedido.
+Cabeçalho na primeira linha, sem linhas de título, sem nomes de função escritos de outro jeito. Mais defeitos dariam mais trabalho na limpeza sem mostrar nada de novo.
 
 ### Concentração de pendências é artificial
 
@@ -74,15 +72,13 @@ Por treinamento, a concentração não depende de fator: os treinamentos com ven
 
 ### A contagem de "Vencidos" do resumo
 
-Os 30 vencidos incluem itens CONDICIONAIS que têm data: se o funcionário fez o treinamento e ele venceu, a conta entra aí. A regra final de como o painel trata esses itens é da fase 2.
-
-**Decidido na fase 2:** os condicionais vencidos aparecem na contagem de itens vencidos (30), mas não viram pendência. As pendências por vencimento são só as dos obrigatórios (27). Ver "CONDICIONAL avisa, mas não pende".
+Os 30 vencidos incluem itens CONDICIONAIS que têm data: se o funcionário fez o treinamento e ele venceu, a conta entra aí. Na etapa do SQL ficou decidido que os condicionais vencidos aparecem na contagem de itens vencidos (30), mas não viram pendência. As pendências por vencimento são só as dos obrigatórios (27). Ver "CONDICIONAL avisa, mas não pende".
 
 ### Testes independentes do gerador
 
 Os testes rodam o script pela linha de comando e leem as planilhas com um leitor próprio, em `tests/apoio.py`, sem importar nada do gerador. Se o gerador errar uma conta, os testes não herdam o mesmo erro.
 
-## Fase 2: SQL de referência e gabarito
+## O SQL de referência e o gabarito
 
 ### A situação de cada item, nesta ordem
 
@@ -147,7 +143,7 @@ A tabela `dim_funcao` existe só para isso: sem ela, um funcionário de uma fun�
 
 ### Os status de entrega e assinatura ficam fora
 
-O modelo "farol" tem status como "pendente de assinatura" e "entregue e assinado". A planilha de entrada só guarda data ou vazio, e criar uma coluna para esses status seria inventar dados que o spec não pediu. O painel mostra só as situações da tabela acima.
+O modelo "farol" tem status como "pendente de assinatura" e "entregue e assinado". A planilha de entrada só guarda data ou vazio, e criar uma coluna para esses status seria inventar dados. O painel mostra só as situações da tabela acima.
 
 ### Taxa de pendência, não só a quantidade
 
@@ -173,11 +169,11 @@ Para conferir os próprios testes, cada regra acima foi quebrada de propósito n
 
 Os CSVs saem em UTF-8 e com fim de linha LF, e o `.gitattributes` mantém o LF no Windows. Assim, uma nova limpeza sem mudança nos dados não aparece no git.
 
-## Fase 3: pacote do Power BI
+## O pacote do Power BI
 
 ### O Power Query refaz a limpeza
 
-O painel lê as planilhas brutas de `data/entrada`, e não os CSVs de `data/limpa`. É o que o spec pede: limpeza, tipagem, duplicados, rejeições e despivotar, tudo no Power Query. A limpeza em Python continua sendo a referência. O teste exige que as tabelas do Power Query sejam iguais, coluna a coluna, às de `data/limpa`, com a entrada padrão e com uma entrada mais bagunçada: matrícula com espaços, tabulação no nome, espaço que não quebra na equipe, data com hora, data em texto com espaços, data no formato aaaa-mm-dd, célula só com espaços, linha em branco no meio, linhas extras no `Historico`, regra em minúsculas e outras janelas de alerta.
+O painel lê as planilhas brutas de `data/entrada`, e não os CSVs de `data/limpa`. Limpeza, tipagem, duplicados, rejeições e despivotar ficam todos no Power Query, e o painel funciona só com as planilhas. A limpeza em Python continua sendo a referência. O teste exige que as tabelas do Power Query sejam iguais, coluna a coluna, às de `data/limpa`, com a entrada padrão e com uma entrada mais bagunçada: matrícula com espaços, tabulação no nome, espaço que não quebra na equipe, data com hora, data em texto com espaços, data no formato aaaa-mm-dd, célula só com espaços, linha em branco no meio, linhas extras no `Historico`, regra em minúsculas e outras janelas de alerta.
 
 ### Uma pasta só como fonte
 
@@ -201,9 +197,9 @@ O modelo tem algumas colunas que os CSVs não têm: vencimento, emissão vigente
 
 Quando não há nada a contar, a medida devolve vazio. Com zero, cada matriz e cada tabela passariam a mostrar todas as combinações de funcionário e treinamento, inclusive as que não têm nada. O custo é um cartão mostrar "(Em branco)" quando o filtro não encontra nada; o passo a passo explica como pôr zero num cartão específico.
 
-### Nomes do spec, dias da planilha
+### Nomes fixos, dias da planilha
 
-As medidas se chamam "Vencem em 30 dias", "60" e "90", como no spec, mas os dias vêm da aba `Alertas`. Mudar as janelas para 15, 45 e 75 muda as contas, não os nomes. O texto do `Status Farol` usa os dias de verdade, como o SQL: "Vence em até 15 dias".
+As medidas se chamam "Vencem em 30 dias", "60" e "90", porque é assim que a pergunta do painel fala, mas os dias vêm da aba `Alertas`. Mudar as janelas para 15, 45 e 75 muda as contas, não os nomes. O texto do `Status Farol` usa os dias de verdade, como o SQL: "Vence em até 15 dias".
 
 ### A agenda não traz o que já venceu
 
@@ -215,11 +211,11 @@ Cada célula da matriz mostra um texto curto (a data de vencimento, "falta", "co
 
 ### O Excel como banco de provas
 
-Na fase 3, o Power BI Desktop não estava instalado aqui. O Excel tem o mesmo motor de Power Query e o mesmo motor de modelo de dados que roda DAX. Por isso, `tests/test_powerbi.py` abre o Excel por automação, cria as consultas a partir dos arquivos `.m`, carrega as tabelas no modelo de dados, cria as relações de [MODELO.md](MODELO.md) e roda as medidas de `dax/medidas.dax`. O resultado tem de bater com o gabarito do SQL.
+Quando montei o pacote, o Power BI Desktop ainda não estava instalado no meu computador. O Excel tem o mesmo motor de Power Query e o mesmo motor de modelo de dados que roda DAX. Por isso, `tests/test_powerbi.py` abre o Excel por automação, cria as consultas a partir dos arquivos `.m`, carrega as tabelas no modelo de dados, cria as relações de [MODELO.md](MODELO.md) e roda as medidas de `dax/medidas.dax`. O resultado tem de bater com o gabarito do SQL.
 
 Os dados gerados não têm nenhum item vencendo exatamente na data de referência, no último dia de uma janela ou no dia seguinte. Sem esses casos, trocar `<` por `<=` numa medida passaria nos testes. Por isso, o cenário variado planta um item obrigatório em cada fronteira: vence ontem, vence hoje, vence no último dia de cada janela e no dia seguinte. Um teste confere que eles estão lá.
 
-O que esse teste não cobre: os visuais, a formatação condicional e diferenças de versão entre o motor do Excel e o do Power BI Desktop. A diferença entre os motores e os visuais passaram a ser conferidos na fase 4.
+O que esse teste não cobre: os visuais, a formatação condicional e diferenças de versão entre o motor do Excel e o do Power BI Desktop. Depois, a diferença entre os motores e os visuais passaram a ser conferidos no próprio Power BI Desktop (ver a seção seguinte).
 
 ### Só funções que o Excel também conhece
 
@@ -227,11 +223,11 @@ O motor do Excel não conhece todas as funções do Power BI Desktop. A primeira
 
 O teste precisa de Windows, Excel e pywin32, e leva alguns minutos. Sem Excel, ele é pulado. Para rodar só o resto: `python -m pytest -m "not excel"`.
 
-## Fase 4: o projeto do Power BI
+## O projeto do Power BI
 
 ### O projeto é gerado, não montado à mão
 
-O passo a passo de [MONTAGEM.md](MONTAGEM.md) monta o painel clicando. Um painel montado assim depende de cada clique, e um clique esquecido não fica registrado em lugar nenhum. O formato de projeto do Power BI (PBIP) é todo em texto: o modelo em TMDL e o relatório em PBIR. Por isso, `scripts/montar_pbip.py` escreve o projeto a partir das peças da fase 3. As consultas vêm de `powerquery/`, as medidas de `dax/medidas.dax`, as relações de [MODELO.md](MODELO.md), a ordem das consultas e as cores da legenda de [MONTAGEM.md](MONTAGEM.md), e o tema de `tema/tema.json`.
+O passo a passo de [MONTAGEM.md](MONTAGEM.md) monta o painel clicando. Um painel montado assim depende de cada clique, e um clique esquecido não fica registrado em lugar nenhum. O formato de projeto do Power BI (PBIP) é todo em texto: o modelo em TMDL e o relatório em PBIR. Por isso, `scripts/montar_pbip.py` escreve o projeto a partir das peças do pacote. As consultas vêm de `powerquery/`, as medidas de `dax/medidas.dax`, as relações de [MODELO.md](MODELO.md), a ordem das consultas e as cores da legenda de [MONTAGEM.md](MONTAGEM.md), e o tema de `tema/tema.json`.
 
 Assim, não há uma segunda cópia das consultas e das medidas que possa ficar diferente da primeira. O teste exige que `powerbi/` seja exatamente o que o gerador produz agora, e que gerar duas vezes dê os mesmos arquivos, byte a byte.
 
